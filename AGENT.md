@@ -125,6 +125,7 @@ Los resúmenes “Chat N” pueden añadirse al payload de fuentes en el **backe
 
 ## Documentación
 Los documentos de diseño están en `/docs`:
+- `backlog-cursor/` → Backlog técnico accionable ([BACKLOG.md](docs/backlog-cursor/BACKLOG.md), [README.md](docs/backlog-cursor/README.md)); el [CHANGELOG.md](docs/backlog-cursor/CHANGELOG.md) de esa carpeta debe actualizarse siempre que cambie el backlog (regla Cursor: `.cursor/rules/maintain-backlog-changelog.mdc`)
 - `00-overview.md` → Visión general y principios
 - `01-architecture.md` → Arquitectura y componentes
 - `02-e2e-flows.md` → Flujos end-to-end
@@ -151,3 +152,11 @@ Los skills accionables para tareas específicas están en `/.skills/`:
 4. NUNCA generes respuestas de IA sin fuentes
 5. SIEMPRE incluye `tenantId`; `patientId` y `clinicalHistoryId` según el ámbito
 6. SIEMPRE registra en audit log las operaciones sobre datos clínicos relevantes
+7. SIEMPRE actualiza `docs/backlog/CHANGELOG.md` al completar una tarea, agregar funcionalidad, corregir un bug, o hacer un cambio arquitectónico
+
+## Backlog y CHANGELOG (OBLIGATORIO)
+- El backlog técnico está en `docs/backlog/` — consulta el README para entender la estructura
+- **`docs/backlog/CHANGELOG.md` DEBE mantenerse actualizado en todo momento**
+- Cada cambio relevante debe tener una entrada en el CHANGELOG con: fecha, descripción, sprint/tarea, tipo (Added/Changed/Fixed/Removed)
+- Actualiza el estado de las tareas en los archivos de sprint correspondientes cuando completes trabajo
+- Usa los IDs de tarea (S0-01, S1-02, etc.) para referenciar tareas en commits y documentación
