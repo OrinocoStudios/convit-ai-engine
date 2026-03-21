@@ -87,7 +87,7 @@ Implementado como **ChatSession** + **ChatMessage** (arriba). Las conversaciones
 - metadata (pregunta, scopes, ids de fuentes)
 
 ## Dos bases de datos (conceptual)
-1. **Corpus RAG + operacional clínico** (Mongo, Neo4j, vector store, etc. según diseño).
+1. **Corpus RAG** (embeddings, grafo, vector store) — **Brain Service** u otro servicio externo; **operacional clínico** en este repo — **MongoDB** (pacientes, metadatos documentos, auditoría, sesiones de chat).
 2. **Resúmenes / historial de conversación** por historia clínica — almacén separado para los “Chat N” y metadatos asociados.
 
 La aplicación debe mantener **coherencia referencial** (`clinicalHistoryId`, `patientId`, `tenantId`) entre ambas.

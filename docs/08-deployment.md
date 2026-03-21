@@ -3,10 +3,9 @@
 MVP con Docker Compose
 
 Servicios
-- backend
-- brain-service
-- neo4j
+- backend (MongoDB como BD del servicio)
 - mongo
+- brain-service (RAG, grafo/embeddings si aplica)
 - ollama
 
 Objetivo

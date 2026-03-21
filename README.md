@@ -56,9 +56,9 @@ Enfoque
 Componentes
 	•	Frontend: React / Next.js
 	•	Backend: NestJS
-	•	Base de datos:
-	•	Neo4j (relaciones)
-	•	Vector DB (pgvector o similar)
+	•	Base de datos (en este repo / backend):
+	•	MongoDB — datos operacionales (pacientes, metadatos de documentos, auditoría, chats)
+	•	Grafo, relaciones clínicas y vector store — **Brain Service** (externo), no en convit-ai-engine
 	•	AI:
 	•	LLM local (Qwen / GPT-OSS)
 	•	Storage:

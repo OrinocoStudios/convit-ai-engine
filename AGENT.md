@@ -27,10 +27,8 @@ El contexto RAG se organiza por **clínica (tenant)**: **biblioteca global** de 
 - **Frontend** en Next.js
 
 ### Componentes
-- **Backend (NestJS)**: Auth, control de acceso, auditoría, API REST, orquestación de contexto (RAG + resúmenes)
-- **Brain Service**: Ingesta de documentos al corpus RAG, embeddings, GraphRAG, query con restricción de ámbito
-- **Neo4j**: Grafo de relaciones clínicas (según diseño)
-- **MongoDB**: Datos operacionales
+- **Backend (NestJS)**: Auth, control de acceso, auditoría, API REST, orquestación de contexto (RAG + resúmenes); **MongoDB** como única BD persistida en este servicio
+- **Brain Service**: Ingesta al corpus RAG, embeddings, grafo/relaciones si aplica, vector store, GraphRAG, query con restricción de ámbito (todo ello **fuera** de este repo)
 - **Ollama**: Servidor LLM local (Qwen)
 
 ### Flujo principal
@@ -56,17 +54,18 @@ El backend **no** debe inventar fusión de contexto sin trazabilidad: cada bloqu
 ## Tech stack
 - **Backend**: NestJS + TypeScript
 - **Frontend**: Next.js + React + TypeScript
-- **Base de datos**: Neo4j (grafo) + MongoDB (operacional) + almacén de resúmenes de chat (definición de despliegue)
+- **Base de datos (este backend)**: MongoDB (pacientes, documentos metadatos, auditoría, chats). Grafo/embeddings/resúmenes RAG pesados: Brain Service u otros almacenes externos según despliegue
 - **RAG**: Brain Service (servicio externo)
 - **LLM**: Ollama con Qwen (local)
 - **Infra**: Docker Compose
 
 ## Modelo de datos clave
-Ver `docs/04-data-model.md`. Resumen:
-- **GlobalLibraryDocument**: `tenantId` (sin `patientId`)
-- **PatientDocument**, **ClinicalHistory**, **ChatSummary**: `tenantId` + `patientId`; historia y resúmenes llevan `clinicalHistoryId`
-- **Chunk**: `tenantId`; `patientId` nullable si el chunk es de biblioteca global
-- **AuditLog**: incluir `clinicalHistoryId` cuando la acción sea por historia
+Ver `docs/04-data-model.md`. Resumen (MongoDB en este backend):
+- **Patient**: `tenantId`, `name`
+- **ClinicalDocument**: `tenantId`, `kind` (`global_library` | `patient`), `patientId` si `kind === patient`, `uploadedBy`, `filename`, …
+- **ChatSession** / **ChatMessage**: sesión anónima pública + vínculo a médicos; ver módulo `chat`
+- **AuditLog**: `tenantId`, `action`, `patientId?`, `clinicalHistoryId?`, `userId?`, `metadata?`
+- **Chunk** / grafo RAG: fuera de este servicio (Brain Service)
 
 ## API del Brain Service (evolutivo)
 ```

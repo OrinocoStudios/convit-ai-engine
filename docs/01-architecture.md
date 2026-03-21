@@ -9,11 +9,9 @@
 
 ## Componentes
 - Frontend (Next.js)
-- Backend (NestJS)
-- Brain Service
-- Neo4j (relaciones clínicas, según diseño)
-- Mongo (u otro store operacional)
-- DB dedicada a **threads / resúmenes de chat** (separada del índice vectorial principal)
+- Backend (NestJS) + **MongoDB** (única BD de este servicio: operacional + chats persistidos)
+- Brain Service (externo: corpus RAG, embeddings, grafo/relaciones si aplica, vector store)
+- DB de **threads / resúmenes de chat** puede ser la misma Mongo del backend u otro store según producto
 - LLM local
 
 ## Jerarquía lógica del conocimiento (por clínica)

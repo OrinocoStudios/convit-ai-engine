@@ -34,19 +34,27 @@ Cabeceras: `x-tenant-id`, `x-doctor-user-id` (hasta integrar JWT).
 
 `tenantId` desde token; sin `patientId`.
 
-## Documentos
+## Documentos (metadatos en MongoDB)
 
-`POST /documents/upload` — body debe discriminar:
-- upload a **biblioteca global** (sin `patientId`) o
-- upload a **paciente** (`patientId` requerido)
+Cabeceras: `x-tenant-id`, `x-doctor-user-id` (`uploadedBy`).
 
-`GET /documents?patientId=123` — documentos del paciente  
-`GET /documents/global` — biblioteca del tenant (según implementación)
+`POST /documents` — cuerpo: `kind` (`global_library` | `patient`), `patientId` (obligatorio si `kind === patient`), `filename`, `storageKey?`, `mimeType?`.
+
+`GET /documents?kind=&patientId=` — listado filtrado (query opcional).
 
 ## Pacientes
 
+Cabecera: `x-tenant-id`.
+
+`POST /patients` — cuerpo: `{ "name": "..." }`  
 `GET /patients`  
 `GET /patients/:id`
+
+## Auditoría
+
+Cabeceras: `x-tenant-id`, `x-doctor-user-id` opcional (`userId` en el registro).
+
+`POST /audit/logs` — cuerpo: `action`, `patientId?`, `clinicalHistoryId?`, `metadata?`
 
 ## Historias clínicas (referencia)
 

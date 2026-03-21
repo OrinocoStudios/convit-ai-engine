@@ -43,3 +43,4 @@ ChatSessionSchema.index(
   { unique: true },
 );
 ChatSessionSchema.index({ tenantId: 1, patientId: 1, clinicalHistoryId: 1 });
+ChatSessionSchema.index({ tenantId: 1, primaryDoctorUserId: 1 });

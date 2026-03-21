@@ -8,7 +8,7 @@ El backend de Convit AI **NO accede al LLM directamente** para el corpus RAG. To
 
 ## Arquitectura
 ```
-Backend (NestJS) → HTTP → Brain Service → Neo4j / Embeddings / LLM
+Backend (NestJS) → HTTP → Brain Service → (grafo / embeddings / vector store / LLM internos al Brain Service)
 Backend (NestJS) → DB resúmenes → (fusión de contexto / sources)
 ```
 

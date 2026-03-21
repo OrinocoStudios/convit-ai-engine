@@ -8,14 +8,15 @@ Referencia completa en `docs/04-data-model.md`.
 
 ### Entidades principales (lógicas)
 ```
-Patient              → id, tenantId, name
-GlobalLibraryDocument → id, tenantId, uploadedBy, … (sin patientId)
-PatientDocument      → id, tenantId, patientId, type, flags (p. ej. tool call)
+Patient              → id, tenantId, name (colección `patients`)
+ClinicalDocument     → id, tenantId, kind global_library|patient, patientId?, uploadedBy, filename, … (colección `clinical_documents`)
+AuditLog             → id, tenantId, action, patientId?, clinicalHistoryId?, userId?, metadata (colección `audit_logs`)
+GlobalLibraryDocument → concepto de producto; en código unificado como ClinicalDocument con kind global_library
+PatientDocument      → concepto de producto; en código ClinicalDocument con kind patient
 ClinicalHistory      → id, tenantId, patientId, openedBy, …
 ChatSummary          → id, tenantId, patientId, clinicalHistoryId, label UI, summary… (DB resúmenes)
-Chunk                → id, tenantId, patientId? (null si global), documentId, scope
-Conversation/Message → chat en vivo (opcional)
-AuditLog             → id, tenantId, patientId?, clinicalHistoryId?, action, userId, …
+Chunk                → id, tenantId, patientId? (null si global), documentId, scope (Brain Service / externo)
+ChatSession/ChatMessage → chat en vivo en Mongo (`chat_sessions`, `chat_messages`)
 ```
 
 ## Patrón de entidad (MongoDB con Mongoose)
@@ -55,8 +56,8 @@ PatientDocumentSchema.index({ tenantId: 1, patientId: 1 });
 - Metadata → `Record<string, any>` si hace falta flexibilidad
 - Referencias → ids estables de la entidad referenciada
 
-## Relaciones en Neo4j
-Las relaciones complejas (paciente–historia–documento) pueden modelarse en Neo4j según diseño; los **resúmenes “Chat N”** pueden vivir solo en la DB operacional de conversaciones.
+## Relaciones y grafo
+Las relaciones complejas (paciente–historia–documento) y el grafo RAG los gestiona el **Brain Service** (externo), no MongoDB de este backend. En Mongo se guardan entidades operacionales y chats; los **resúmenes “Chat N”** pueden vivir en la misma Mongo u otra DB según producto.
 
 ## Checklist
 - [ ] `tenantId` siempre que aplique contexto de clínica
