@@ -82,20 +82,15 @@ export class SomethingService {
 - Usar DTOs con class-validator — no aceptar objetos sin validar
 - Retornar códigos HTTP apropiados (201 para creación, 200 para consulta, etc.)
 
-## Endpoints del MVP
-```
-POST   /chat                  → Chat con IA por paciente
-POST   /documents/upload      → Subir documento
-GET    /documents?patientId=  → Listar documentos de un paciente
-GET    /patients              → Listar pacientes del tenant
-GET    /patients/:id          → Detalle de paciente
-```
+## Endpoints del MVP (referencia)
+Ver `docs/05-api-contracts.md` para rutas y cuerpos (chat con `clinicalHistoryId`, upload global vs paciente, resúmenes).
 
 ## Checklist
 - [ ] DTO de entrada con class-validator
 - [ ] DTO de respuesta definido
 - [ ] AuthGuard aplicado
 - [ ] tenantId desde token
-- [ ] patientId validado
+- [ ] patientId validado cuando el recurso es por paciente; omitir solo en biblioteca global
+- [ ] clinicalHistoryId validado cuando el recurso es por historia clínica
 - [ ] Audit log registrado
 - [ ] Sources incluidos si hay respuesta de IA

@@ -6,24 +6,26 @@ Cuando necesites crear o modificar entidades, schemas o modelos de datos en el p
 ## Modelo de datos del MVP
 Referencia completa en `docs/04-data-model.md`.
 
-### Entidades principales
+### Entidades principales (lógicas)
 ```
-Patient        → id, tenantId, name
-Document       → id, tenantId, patientId, type
-Chunk          → id, tenantId, patientId, documentId
-Conversation   → id, patientId, tenantId
-Message        → id, conversationId, content, role, timestamp
-AuditLog       → id, patientId, tenantId, action, userId, timestamp, metadata
+Patient              → id, tenantId, name
+GlobalLibraryDocument → id, tenantId, uploadedBy, … (sin patientId)
+PatientDocument      → id, tenantId, patientId, type, flags (p. ej. tool call)
+ClinicalHistory      → id, tenantId, patientId, openedBy, …
+ChatSummary          → id, tenantId, patientId, clinicalHistoryId, label UI, summary… (DB resúmenes)
+Chunk                → id, tenantId, patientId? (null si global), documentId, scope
+Conversation/Message → chat en vivo (opcional)
+AuditLog             → id, tenantId, patientId?, clinicalHistoryId?, action, userId, …
 ```
 
 ## Patrón de entidad (MongoDB con Mongoose)
 ```typescript
-// entities/document.entity.ts
+// entities/patient-document.entity.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document as MongoDocument } from 'mongoose';
 
 @Schema({ timestamps: true })
-export class DocumentEntity extends MongoDocument {
+export class PatientDocumentEntity extends MongoDocument {
   @Prop({ required: true, index: true })
   tenantId: string;
 
@@ -32,47 +34,35 @@ export class DocumentEntity extends MongoDocument {
 
   @Prop({ required: true })
   type: string;
-
-  @Prop()
-  filename: string;
-
-  @Prop()
-  metadata: Record<string, any>;
 }
 
-export const DocumentSchema = SchemaFactory.createForClass(DocumentEntity);
-
-// Índice compuesto para queries eficientes con aislamiento
-DocumentSchema.index({ tenantId: 1, patientId: 1 });
+export const PatientDocumentSchema = SchemaFactory.createForClass(PatientDocumentEntity);
+PatientDocumentSchema.index({ tenantId: 1, patientId: 1 });
 ```
 
 ## Reglas obligatorias
-1. **Toda entidad con datos clínicos** DEBE incluir `tenantId` y `patientId`
-2. Crear **índice compuesto** `{ tenantId: 1, patientId: 1 }` en entidades clínicas
-3. `tenantId` y `patientId` son **required** y tienen **index: true**
-4. Usar `{ timestamps: true }` en el schema para `createdAt` / `updatedAt` automáticos
-5. Nombres de entidades en **PascalCase**, archivos en **kebab-case**
+1. **Toda entidad con datos clínicos por paciente** incluye `tenantId` y `patientId`
+2. **Biblioteca global**: `tenantId` obligatorio; **sin** `patientId`
+3. **Historias y resúmenes**: `clinicalHistoryId` donde corresponda
+4. Crear **índices compuestos** acordes: `{ tenantId: 1, patientId: 1 }` para entidades de paciente; `{ tenantId: 1 }` para global
+5. `tenantId` y `patientId` (cuando apliquen) con **index: true**
+6. Usar `{ timestamps: true }` en el schema para `createdAt` / `updatedAt` automáticos
+7. Nombres de entidades en **PascalCase**, archivos en **kebab-case**
 
 ## Cuándo agregar campos
-Al agregar un campo nuevo a una entidad:
-- Si contiene datos del paciente → requiere `tenantId` + `patientId`
-- Si es metadata → usar tipo `Record<string, any>` para flexibilidad
-- Si es una referencia → usar el `id` de la entidad referenciada (no ObjectId de Mongo directamente)
+- Datos del paciente → `tenantId` + `patientId`
+- Ámbito de historia → `clinicalHistoryId`
+- Metadata → `Record<string, any>` si hace falta flexibilidad
+- Referencias → ids estables de la entidad referenciada
 
 ## Relaciones en Neo4j
-Las relaciones clínicas complejas (paciente-documento-diagnóstico) van en Neo4j, no en MongoDB. MongoDB es para datos operacionales.
-
-```
-(Patient)-[:HAS_DOCUMENT]->(Document)
-(Document)-[:HAS_CHUNK]->(Chunk)
-(Patient)-[:HAS_CONVERSATION]->(Conversation)
-```
-
-Las relaciones en Neo4j también deben mantener `tenantId` como propiedad para filtrado.
+Las relaciones complejas (paciente–historia–documento) pueden modelarse en Neo4j según diseño; los **resúmenes “Chat N”** pueden vivir solo en la DB operacional de conversaciones.
 
 ## Checklist
-- [ ] tenantId y patientId incluidos (si aplica)
-- [ ] Índice compuesto creado
+- [ ] `tenantId` siempre que aplique contexto de clínica
+- [ ] `patientId` para datos de paciente; omitido solo en biblioteca global
+- [ ] `clinicalHistoryId` para historias y resúmenes asociados
+- [ ] Índices compuestos adecuados
 - [ ] timestamps: true habilitado
 - [ ] Archivo en kebab-case, clase en PascalCase
 - [ ] Schema registrado en el module correspondiente

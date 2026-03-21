@@ -1,76 +1,77 @@
 # Skill: Seguridad y aislamiento
 
 ## Cuándo usar
-Siempre que escribas código que toca datos de pacientes, documentos, chunks, o cualquier dato clínico.
+Siempre que escribas código que toca datos de pacientes, documentos, chunks, historias clínicas, resúmenes de chat o cualquier dato clínico.
 
 ## Principio
-Los datos de un paciente de un hospital NUNCA deben ser accesibles por otro hospital ni mezclarse con otro paciente.
+Los datos de un paciente de un hospital NUNCA deben ser accesibles por otro hospital ni mezclarse con otro paciente. La **biblioteca global** es compartida solo **dentro del mismo tenant**.
 
 ## Campos de aislamiento
-Toda entidad que contenga datos clínicos DEBE incluir:
-- **`tenantId`**: identifica el hospital. Aislamiento a nivel de organización.
-- **`patientId`**: identifica el paciente. Aislamiento a nivel individual.
+- **`tenantId`**: clínica / hospital. Obligatorio en casi todas las entidades.
+- **`patientId`**: paciente. Obligatorio cuando el dato es por persona; **no** se usa en documentos de **biblioteca RAG global**.
+- **`clinicalHistoryId`**: historia clínica bajo un paciente. Obligatorio para operaciones y resúmenes “Chat N” ligados a esa historia.
 
 ## Entidades que DEBEN tener tenantId + patientId
-- `Document`
-- `Chunk`
-- `Conversation`
-- `AuditLog`
-- Cualquier entidad nueva que contenga datos clínicos
+- `PatientDocument`, `ClinicalHistory`, `ChatSummary` (resúmenes)
+- `Chunk` cuando el chunk es de paciente
+- `Conversation` / mensajes con contexto de paciente
+- `AuditLog` cuando la acción es sobre un paciente
 
-## Entidades que solo tienen tenantId
-- `Patient` (el paciente pertenece a un tenant, pero no tiene patientId propio en el filtro)
+## Entidades que solo tienen tenantId (sin patientId)
+- `GlobalLibraryDocument` (PDFs compartidos del tenant)
+- `Patient` (el registro de paciente tiene `tenantId`; el propio paciente no tiene “patientId” como campo de filtro sobre sí mismo)
 
 ## Reglas en queries
-TODA query a la base de datos que toque datos clínicos DEBE filtrar por:
+TODA query que toque datos de paciente DEBE filtrar por:
 ```typescript
-// CORRECTO
-const documents = await this.documentModel.find({
+const documents = await this.patientDocumentModel.find({
   tenantId: user.tenantId,
   patientId: patientId,
 });
+```
 
-// INCORRECTO - NUNCA hacer esto
-const documents = await this.documentModel.find({
+Para biblioteca global:
+```typescript
+const globals = await this.globalLibraryModel.find({
+  tenantId: user.tenantId,
+});
+```
+
+Para resúmenes de una historia:
+```typescript
+const summaries = await this.chatSummaryModel.find({
+  tenantId: user.tenantId,
   patientId: patientId,
-  // Falta tenantId → un hospital podría ver datos de otro
+  clinicalHistoryId: clinicalHistoryId,
 });
 ```
 
 ## Reglas en endpoints
-- Todo endpoint que accede a datos de paciente requiere autenticación
-- El `tenantId` se obtiene del token del usuario autenticado, NUNCA del body
-- El `patientId` viene como parámetro del request (path, query, o body)
-- Validar que el paciente pertenece al tenant del usuario
+- Autenticación obligatoria
+- El `tenantId` se obtiene del token del usuario autenticado, NUNCA del body sin validar
+- Validar que el paciente y la historia pertenecen al tenant del usuario
 
 ## Reglas en Brain Service
-Toda llamada al Brain Service DEBE incluir `tenantId` y `patientId`:
+Toda llamada al Brain Service incluye al menos `tenantId`. Añadir `patientId` y `clinicalHistoryId` según `scopes` acordados.
+
 ```typescript
 await this.ragService.query({
   query: dto.query,
+  tenantId: user.tenantId,
   patientId: dto.patientId,
-  tenantId: user.tenantId,  // Desde el token, no del body
+  clinicalHistoryId: dto.clinicalHistoryId,
+  scopes: dto.scopes,
 });
 ```
 
 ## Auditoría
-Toda operación sobre datos de pacientes se registra:
-```typescript
-await this.auditService.log({
-  action: 'QUERY_PATIENT',
-  patientId: patientId,
-  tenantId: user.tenantId,
-  userId: user.id,
-  timestamp: new Date(),
-  metadata: { query: dto.query },
-});
-```
+Registrar operaciones con el nivel de detalle necesario, incluyendo `clinicalHistoryId` cuando la acción sea por historia.
 
 ## Checklist de seguridad
-- [ ] tenantId viene del token autenticado
-- [ ] patientId validado contra el tenant
-- [ ] Queries filtran por AMBOS campos
-- [ ] Brain Service recibe ambos campos
+- [ ] `tenantId` viene del token autenticado
+- [ ] `patientId` / `clinicalHistoryId` validados contra el tenant
+- [ ] Queries filtran por los campos de aislamiento correctos
+- [ ] Brain Service recibe el contexto de ámbito acordado
 - [ ] Operación registrada en audit log
-- [ ] No hay dependencias de servicios externos
+- [ ] No hay dependencias de servicios externos no autorizados
 - [ ] No hay datos sensibles en logs de aplicación

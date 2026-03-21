@@ -85,3 +85,4 @@ export class CreateNombreDto {
 - [ ] Module registrado en app.module.ts
 - [ ] tenantId/patientId incluidos si aplica
 - [ ] Service exportado desde el module
+- [ ] Test de integración en `test/<nombre>.integration-spec.ts` (ver skill `integration-testing.md`)

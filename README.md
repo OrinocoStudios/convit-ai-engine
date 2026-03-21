@@ -28,9 +28,11 @@ Regla principal:
 3. Alcance MVP
 
 Funcionalidades incluidas
-	•	Chat con IA contextual por paciente
-	•	Subida de documentos (PDF, informes, etc.)
-	•	Búsqueda de documentos
+	•	Chat con IA contextual por paciente e historia clínica
+	•	Biblioteca RAG global de PDFs compartidos (por tenant)
+	•	Documentos por paciente (incl. vía tool calls para archivos pequeños)
+	•	Subida y búsqueda de documentos según ámbito (global vs paciente)
+	•	Resúmenes de conversaciones por historia (“Chat N”) en almacenamiento dedicado
 	•	Visor de documentos
 	•	Deploy en entorno del hospital (Docker)
 
@@ -68,6 +70,34 @@ Flujo principal
 
 Usuario → Backend → RAG → DB → LLM → Respuesta + fuentes
 
+⸻
+
+4.1 Modelo jerárquico del RAG (por clínica)
+
+El conocimiento recuperable por el sistema se organiza así:
+
+```
+Clínica (tenant)
+├── Biblioteca RAG global — PDFs médicos compartidos
+│   └── Cualquier doctor del tenant puede subir contenido
+│
+└── Pacientes (visibles/compartidos entre los doctores del tenant)
+    └── Paciente
+        ├── Documentos — archivos pequeños; el agente puede acceder vía tool call
+        └── Historias clínicas
+            └── Historia clínica (ej. abierta por un doctor)
+                ├── “Chat 1”, “Chat 2”, … — entradas de UI
+                └── En backend: resúmenes de conversaciones persistidos en otra base de datos
+                    (no son solo chunks del mismo índice RAG que los PDFs; conviven como contexto
+                     de historia clínica)
+```
+
+Notas de diseño:
+	•	La **biblioteca global** aporta protocolos, guías y material compartido; no está ligada a un paciente concreto.
+	•	Los **documentos del paciente** son de tamaño reducido y están pensados para recuperación dirigida (p. ej. tool calls), no necesariamente el mismo pipeline masivo que los PDFs de la biblioteca.
+	•	Cada **historia clínica** acota el hilo asistencial; los “Chat N” son **resúmenes de chats** guardados en **otra base de datos** y se usan como capa de memoria/resumen dentro del contexto de esa historia.
+	•	Una consulta puede combinar contexto global del tenant, documentos del paciente e historial resumido de la historia activa, siempre con **fuentes trazables**.
+
 
 ⸻
 
@@ -86,28 +116,36 @@ Usuario → Backend → RAG → DB → LLM → Respuesta + fuentes
 
 6. Flujos clave
 
-6.1 Consulta clínica
-	1.	Usuario selecciona paciente
+6.1 Consulta clínica (dentro de una historia)
+	1.	Usuario selecciona paciente e historia clínica activa (si aplica)
 	2.	Realiza una pregunta
-	3.	Backend:
-	•	Recupera contexto (RAG)
-	•	Consulta LLM
+	3.	Backend / Brain Service:
+	•	Recupera contexto según ámbito: biblioteca global del tenant, documentos del paciente (incl. tool calls si aplica), resúmenes de chats asociados a esa historia (otra DB)
+	•	Consulta LLM con política de citas
 	4.	Devuelve:
 	•	Respuesta
-	•	Fuentes utilizadas
+	•	Fuentes utilizadas (documento, historia, o identificador de resumen según proceda)
 
 ⸻
 
-6.2 Ingesta de documentos
-	1.	Usuario sube documento
-	2.	Backend:
-	•	Guarda metadata
-	•	Envía a RAG
-	3.	RAG:
-	•	Parsea
-	•	Divide en chunks
-	•	Genera embeddings
-	4.	Guarda en DB
+6.2 Ingesta — biblioteca RAG global
+	1.	Doctor sube PDF compartido (ámbito tenant, sin paciente)
+	2.	Backend guarda metadata e ingesta en el índice/corpus global
+	3.	RAG: parseo, chunks, embeddings; trazabilidad por `tenantId` y `documentId`
+
+⸻
+
+6.3 Ingesta — documento de paciente
+	1.	Usuario sube archivo pequeño asociado al paciente
+	2.	Backend guarda metadata (`tenantId`, `patientId`) y registra para RAG y/o exposición a tool calls
+	3.	RAG o herramientas recuperan fragmentos con aislamiento estricto por tenant + paciente
+
+⸻
+
+6.4 Resúmenes de chat (“Chat N”)
+	1.	Las conversaciones largas se persisten y resumen; los “Chat 1 / Chat 2” de la UI son **entradas de resumen** ligadas a la historia clínica
+	2.	Esos resúmenes viven en **una base de datos distinta** al corpus principal de embeddings (operacional / memoria de conversación)
+	3.	Al contestar, el sistema puede inyectar esos resúmenes como contexto acotado a la historia, sin confundirlos con fuentes documentales salvo que el contrato lo unifique en `sources`
 
 ⸻
 
@@ -118,6 +156,7 @@ interface RetrieveContextResponse {
     content: string;
     source: string;
     documentId: string;
+    scope: 'GLOBAL_LIBRARY' | 'PATIENT_DOCUMENT' | 'CHAT_SUMMARY';
   }[];
 }
 
@@ -136,7 +175,9 @@ interface RetrieveContextResponse {
 
 Guardar:
 	•	Pregunta del usuario
-	•	patientId
+	•	patientId (si aplica)
+	•	clinicalHistoryId (si la consulta es por historia clínica)
+	•	Ámbitos / scopes utilizados (global, paciente, historia)
 	•	Contexto utilizado
 	•	Respuesta generada
 	•	Timestamp
@@ -206,8 +247,9 @@ Sprint 4 – Calidad + deploy
 12. Definición de “Done”
 
 El MVP está listo si:
-	•	Se pueden subir documentos por paciente
-	•	Se pueden hacer consultas con respuesta + fuentes
+	•	Se pueden subir PDFs a la biblioteca global y documentos por paciente (con reglas de tamaño/acceso definidas)
+	•	Se pueden crear historias clínicas y asociar resúmenes de chat (“Chat N”) persistidos en la DB correspondiente
+	•	Se pueden hacer consultas con respuesta + fuentes que distingan origen (global / paciente / resumen de historia)
 	•	Funciona en entorno local (hospital)
 	•	Soporta uso concurrente básico
 
