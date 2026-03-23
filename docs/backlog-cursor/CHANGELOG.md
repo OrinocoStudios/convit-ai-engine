@@ -7,9 +7,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/) sol
 
 ## [Unreleased]
 
-### Added
-- **Módulo de Historias Clínicas**: Implementación completa de `ClinicalHistories` (`Patient -> ClinicalHistory -> Session -> Message`).
-- **Integración con RAG (Brain Service)**: Nuevo `RagService` con cliente Axios para consultas al Cerebro.
+- **Auditoría Automática (BK-11)**: Integración de `AuditService` en flujos de `Patients`, `History` y `Chat`. Acción trazable automáticamente.
+- **Endpoint de Auditoría**: Añadido `GET /audit` para visualización de logs por tenant.
+- **Flujo de Chat Automatizado**: ... (ya estaba)
 - **Flujo de Chat Automatizado**: Los mensajes del usuario ahora disparan automáticamente una consulta al Cerebro y guardan la respuesta de la IA con sus fuentes.
 - **Persistencia de Fuentes**: Actualización del esquema `ChatMessage` para guardar metadatos de citación.
 

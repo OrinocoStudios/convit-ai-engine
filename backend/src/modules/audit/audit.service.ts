@@ -29,4 +29,8 @@ export class AuditService {
       metadata: entry.metadata,
     });
   }
+
+  async findAll(tenantId: string) {
+    return this.auditModel.find({ tenantId }).sort({ createdAt: -1 }).lean().exec();
+  }
 }

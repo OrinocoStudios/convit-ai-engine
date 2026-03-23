@@ -3,16 +3,25 @@ import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model } from 'mongoose';
 import { Patient, PatientDocument } from './schemas/patient.schema';
 import { CreatePatientDto } from './dto/create-patient.dto';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class PatientsService {
   constructor(
     @InjectModel(Patient.name)
     private readonly patientModel: Model<PatientDocument>,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(tenantId: string, dto: CreatePatientDto) {
-    return this.patientModel.create({ tenantId, name: dto.name });
+    const patient = await this.patientModel.create({ tenantId, name: dto.name });
+    await this.auditService.log({
+      tenantId,
+      action: 'PATIENT_CREATE',
+      patientId: patient._id.toString(),
+      metadata: { name: patient.name },
+    });
+    return patient;
   }
 
   async findByTenant(tenantId: string) {

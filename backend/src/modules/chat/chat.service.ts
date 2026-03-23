@@ -13,6 +13,7 @@ import { CreateChatSessionDto } from './dto/create-chat-session.dto';
 import { CreateChatMessageDto } from './dto/create-chat-message.dto';
 import { RagService } from '../rag/rag.service';
 import { RagScope } from '../rag/dto/query-request.dto';
+import { AuditService } from '../audit/audit.service';
 
 /** Respuesta segura para clientes: sin `patientId`. */
 export type AnonymousChatSessionView = {
@@ -34,6 +35,7 @@ export class ChatService {
     @InjectModel(ChatMessage.name)
     private readonly messageModel: Model<ChatMessageDocument>,
     private readonly ragService: RagService,
+    private readonly auditService: AuditService,
   ) {}
 
   async createSession(
@@ -55,6 +57,14 @@ export class ChatService {
       primaryDoctorUserId,
       patientId: dto.patientId,
       clinicalHistoryId: dto.clinicalHistoryId,
+    });
+
+    await this.auditService.log({
+      tenantId,
+      action: 'CHAT_SESSION_CREATE',
+      patientId: dto.patientId,
+      clinicalHistoryId: dto.clinicalHistoryId,
+      userId: primaryDoctorUserId,
     });
 
     return this.toAnonymousSessionView(doc);
@@ -98,6 +108,16 @@ export class ChatService {
 
     // Si es un mensaje del usuario, disparamos la respuesta de la IA
     if (dto.role === 'user') {
+      // Loggear el mensaje del usuario en auditoría
+      await this.auditService.log({
+        tenantId,
+        action: 'CHAT_MESSAGE_USER',
+        patientId: session.patientId,
+        clinicalHistoryId: session.clinicalHistoryId,
+        userId: dto.authorDoctorUserId,
+        metadata: { messageId: msg._id.toString() },
+      });
+
       try {
         const scopes: RagScope[] = [RagScope.GLOBAL_LIBRARY];
         if (session.patientId) scopes.push(RagScope.PATIENT_DOCUMENT);
@@ -111,7 +131,7 @@ export class ChatService {
           scopes,
         });
 
-        await this.messageModel.create({
+        const assistantMsg = await this.messageModel.create({
           tenantId,
           sessionId: session._id,
           sessionAnonymousPublicId: session.anonymousPublicId,
@@ -119,16 +139,34 @@ export class ChatService {
           content: ragResponse.answer,
           sources: ragResponse.sources,
         });
+
+        await this.auditService.log({
+          tenantId,
+          action: 'CHAT_MESSAGE_ASSISTANT',
+          patientId: session.patientId,
+          clinicalHistoryId: session.clinicalHistoryId,
+          metadata: {
+            messageId: assistantMsg._id.toString(),
+            sourceCount: ragResponse.sources?.length ?? 0,
+          },
+        });
       } catch (error) {
         this.logger.error(`Failed to get IA response: ${error.message}`);
-        // No lanzamos error para que el mensaje del usuario quede guardado,
-        // pero el frontend debería saber que la IA falló (o podemos guardar un mensaje de error).
+        
         await this.messageModel.create({
           tenantId,
           sessionId: session._id,
           sessionAnonymousPublicId: session.anonymousPublicId,
           role: 'assistant',
           content: 'Lo siento, no he podido conectar con mi cerebro en este momento. Por favor, inténtalo de nuevo más tarde.',
+        });
+
+        await this.auditService.log({
+          tenantId,
+          action: 'CHAT_ERROR_RAG',
+          patientId: session.patientId,
+          clinicalHistoryId: session.clinicalHistoryId,
+          metadata: { error: error.message },
         });
       }
     }
