@@ -9,6 +9,7 @@ import { DocumentsModule } from './modules/documents/documents.module';
 import { RagModule } from './modules/rag/rag.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { ClinicalHistoriesModule } from './modules/clinical-histories/clinical-histories.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AuditModule } from './modules/audit/audit.module';
     RagModule,
     ChatModule,
     AuditModule,
+    ClinicalHistoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
