@@ -7,6 +7,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/) sol
 
 ## [Unreleased]
 
+- **Identidad del Paciente (BK-2)**: Implementación de DNI y SSN como identificadores obligatorios y únicos por clínica.
+- **Buscador de Pacientes**: Nuevo endpoint `GET /patients/search?identity=...` para localización rápida.
 - **Auditoría Automática (BK-11)**: Integración de `AuditService` en flujos de `Patients`, `History` y `Chat`. Acción trazable automáticamente.
 - **Endpoint de Auditoría**: Añadido `GET /audit` para visualización de logs por tenant.
 - **Flujo de Chat Automatizado**: ... (ya estaba)

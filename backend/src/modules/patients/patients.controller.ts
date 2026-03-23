@@ -6,6 +6,7 @@ import {
   Headers,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
 import { PatientsService } from './patients.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
@@ -23,6 +24,20 @@ export class PatientsController {
       throw new BadRequestException('Missing header x-tenant-id');
     }
     return this.patientsService.create(tenantId.trim(), dto);
+  }
+
+  @Get('search')
+  search(
+    @Headers('x-tenant-id') tenantId: string | undefined,
+    @Query('identity') identity: string,
+  ) {
+    if (!tenantId?.trim()) {
+      throw new BadRequestException('Missing header x-tenant-id');
+    }
+    if (!identity?.trim()) {
+      throw new BadRequestException('Missing query parameter identity');
+    }
+    return this.patientsService.searchByIdentity(tenantId.trim(), identity.trim());
   }
 
   @Get()

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model } from 'mongoose';
 import { Patient, PatientDocument } from './schemas/patient.schema';
@@ -14,14 +18,38 @@ export class PatientsService {
   ) {}
 
   async create(tenantId: string, dto: CreatePatientDto) {
-    const patient = await this.patientModel.create({ tenantId, name: dto.name });
+    if (!dto.dni?.trim() && !dto.ssn?.trim()) {
+      throw new BadRequestException('At least one of DNI or SSN is required');
+    }
+
+    const patient = await this.patientModel.create({
+      tenantId,
+      name: dto.name,
+      dni: dto.dni?.trim() || undefined,
+      ssn: dto.ssn?.trim() || undefined,
+    });
+
     await this.auditService.log({
       tenantId,
       action: 'PATIENT_CREATE',
       patientId: patient._id.toString(),
-      metadata: { name: patient.name },
+      metadata: { name: patient.name, dni: patient.dni, ssn: patient.ssn },
     });
     return patient;
+  }
+
+  async searchByIdentity(tenantId: string, identity: string) {
+    const term = identity.trim();
+    if (!term) return null;
+
+    // Búsqueda exacta por DNI o SSN
+    return this.patientModel
+      .findOne({
+        tenantId,
+        $or: [{ dni: term }, { ssn: term }],
+      })
+      .lean()
+      .exec();
   }
 
   async findByTenant(tenantId: string) {
