@@ -14,4 +14,9 @@ dist/
 .idea/
 .vscode/
 *.swp
-*.swo
+# Docs
+docs/project-onboarding.md
+docs/code-explanation.md
+docs/how-to-run.md
+docs/logica-historia-clinica.md
+docs/logica-de-chat.md

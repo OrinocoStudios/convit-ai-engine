@@ -46,7 +46,7 @@ Backlog accionable alineado con **Client** (frontend), **Back** (NestJS en este 
 
 | ID        | Descripción                                                                                         | Criterios de aceptación                                                                                    | Estado      | Referencias                                      |
 | --------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------ |
-| **BK-5**  | Entidad **ClinicalHistory** y endpoints (`GET/POST .../clinical-histories`, `GET /clinical-histories/:id`). | Contrato alineado con [docs/05-api-contracts.md](../05-api-contracts.md); aislamiento `tenantId` + `patientId`. | **Pendiente** | [docs/04-data-model.md](../04-data-model.md)   |
+| **BK-5**  | Entidad **ClinicalHistory** y endpoints (`GET/POST .../clinical-histories`, `GET /clinical-histories/:id`). | Contrato alineado con [docs/05-api-contracts.md](../05-api-contracts.md); aislamiento `tenantId` + `patientId`. | **Hecho**   | [backend/src/modules/clinical-histories/](../../backend/src/modules/clinical-histories/) |
 | **BK-6**  | **ChatSummary** en almacén separado (o colección dedicada) y endpoints de listado/creación.       | Vinculado a `clinicalHistoryId`; usable como contexto en respuestas con fuente `CHAT_SUMMARY` si aplica.   | **Pendiente** | [docs/04-data-model.md](../04-data-model.md)   |
 
 ### Chat persistido (registro “anónimo”)

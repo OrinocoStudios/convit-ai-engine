@@ -4,6 +4,7 @@ import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { ChatSession, ChatSessionSchema } from './schemas/chat-session.schema';
 import { ChatMessage, ChatMessageSchema } from './schemas/chat-message.schema';
+import { RagModule } from '../rag/rag.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { ChatMessage, ChatMessageSchema } from './schemas/chat-message.schema';
       { name: ChatSession.name, schema: ChatSessionSchema },
       { name: ChatMessage.name, schema: ChatMessageSchema },
     ]),
+    RagModule,
   ],
   controllers: [ChatController],
   providers: [ChatService],

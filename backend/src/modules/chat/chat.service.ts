@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -10,6 +11,8 @@ import { ChatSession, ChatSessionDocument } from './schemas/chat-session.schema'
 import { ChatMessage, ChatMessageDocument } from './schemas/chat-message.schema';
 import { CreateChatSessionDto } from './dto/create-chat-session.dto';
 import { CreateChatMessageDto } from './dto/create-chat-message.dto';
+import { RagService } from '../rag/rag.service';
+import { RagScope } from '../rag/dto/query-request.dto';
 
 /** Respuesta segura para clientes: sin `patientId`. */
 export type AnonymousChatSessionView = {
@@ -23,11 +26,14 @@ export type AnonymousChatSessionView = {
 
 @Injectable()
 export class ChatService {
+  private readonly logger = new Logger(ChatService.name);
+
   constructor(
     @InjectModel(ChatSession.name)
     private readonly sessionModel: Model<ChatSessionDocument>,
     @InjectModel(ChatMessage.name)
     private readonly messageModel: Model<ChatMessageDocument>,
+    private readonly ragService: RagService,
   ) {}
 
   async createSession(
@@ -89,6 +95,43 @@ export class ChatService {
       authorDoctorUserId:
         dto.role === 'user' ? dto.authorDoctorUserId : undefined,
     });
+
+    // Si es un mensaje del usuario, disparamos la respuesta de la IA
+    if (dto.role === 'user') {
+      try {
+        const scopes: RagScope[] = [RagScope.GLOBAL_LIBRARY];
+        if (session.patientId) scopes.push(RagScope.PATIENT_DOCUMENT);
+        if (session.clinicalHistoryId) scopes.push(RagScope.CLINICAL_HISTORY);
+
+        const ragResponse = await this.ragService.query({
+          query: dto.content,
+          tenantId,
+          patientId: session.patientId,
+          clinicalHistoryId: session.clinicalHistoryId,
+          scopes,
+        });
+
+        await this.messageModel.create({
+          tenantId,
+          sessionId: session._id,
+          sessionAnonymousPublicId: session.anonymousPublicId,
+          role: 'assistant',
+          content: ragResponse.answer,
+          sources: ragResponse.sources,
+        });
+      } catch (error) {
+        this.logger.error(`Failed to get IA response: ${error.message}`);
+        // No lanzamos error para que el mensaje del usuario quede guardado,
+        // pero el frontend debería saber que la IA falló (o podemos guardar un mensaje de error).
+        await this.messageModel.create({
+          tenantId,
+          sessionId: session._id,
+          sessionAnonymousPublicId: session.anonymousPublicId,
+          role: 'assistant',
+          content: 'Lo siento, no he podido conectar con mi cerebro en este momento. Por favor, inténtalo de nuevo más tarde.',
+        });
+      }
+    }
 
     return { id: msg._id.toString() };
   }

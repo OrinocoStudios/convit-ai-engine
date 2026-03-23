@@ -7,6 +7,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/) sol
 
 ## [Unreleased]
 
+### Added
+- **Módulo de Historias Clínicas**: Implementación completa de `ClinicalHistories` (`Patient -> ClinicalHistory -> Session -> Message`).
+- **Integración con RAG (Brain Service)**: Nuevo `RagService` con cliente Axios para consultas al Cerebro.
+- **Flujo de Chat Automatizado**: Los mensajes del usuario ahora disparan automáticamente una consulta al Cerebro y guardan la respuesta de la IA con sus fuentes.
+- **Persistencia de Fuentes**: Actualización del esquema `ChatMessage` para guardar metadatos de citación.
+
 ## [0.1.0] - 2026-03-21
 
 ### Added

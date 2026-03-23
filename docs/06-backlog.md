@@ -1,11 +1,18 @@
-# Backlog
+# ⚠️ Backlog (OBSOLETO - Usar docs/backlog-cursor/BACKLOG.md)
+
+Este archivo está en desuso. Favor referirse a la guía técnica detallada en:
+[BACKLOG TÉCNICO (Cursor)](backlog-cursor/BACKLOG.md)
+
+---
+
+# Backlog Original (Solo Referencia)
 
 Sprint 1
-- Setup backend
-- Auth
-- Patients
-- Modelo historia clínica + resúmenes (DB separada)
-- RAG: biblioteca global + paciente (contrato por `scope`)
+- [x] Setup backend
+- [x] Auth
+- [x] Patients
+- [x] Modelo historia clínica + resúmenes (DB separada)
+- [/] RAG: biblioteca global + paciente (contrato por `scope`)
 
 Sprint 2
 - Upload biblioteca global

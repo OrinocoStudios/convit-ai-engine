@@ -24,6 +24,16 @@ export class ChatMessage {
   @Prop({ required: true })
   content: string;
 
+  /** Fuentes citadas por la IA si role === assistant. */
+  @Prop({ type: [Object], default: [] })
+  sources?: {
+    content: string;
+    source: string;
+    documentId?: string;
+    scope: string;
+    metadata?: Record<string, any>;
+  }[];
+
   /** Si role === user, qué médico escribió (user id del sistema de auth). */
   @Prop({ index: true })
   authorDoctorUserId?: string;
