@@ -14,6 +14,7 @@ import { CreateChatMessageDto } from './dto/create-chat-message.dto';
 import { RagService } from '../rag/rag.service';
 import { RagScope } from '../rag/dto/query-request.dto';
 import { AuditService } from '../audit/audit.service';
+import { ChatSummariesService } from '../chat-summaries/chat-summaries.service';
 
 /** Respuesta segura para clientes: sin `patientId`. */
 export type AnonymousChatSessionView = {
@@ -36,6 +37,7 @@ export class ChatService {
     private readonly messageModel: Model<ChatMessageDocument>,
     private readonly ragService: RagService,
     private readonly auditService: AuditService,
+    private readonly chatSummariesService: ChatSummariesService,
   ) {}
 
   async createSession(
@@ -222,6 +224,67 @@ export class ChatService {
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     }));
+  }
+
+  async closeSession(
+    tenantId: string,
+    anonymousPublicId: string,
+  ): Promise<{ summary: string }> {
+    const session = await this.sessionModel.findOne({
+      tenantId,
+      anonymousPublicId,
+    });
+    if (!session) {
+      throw new NotFoundException('Chat session not found');
+    }
+
+    // 1. Obtener mensajes
+    const messages = await this.messageModel
+      .find({ tenantId, sessionId: session._id })
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
+
+    if (messages.length === 0) {
+      throw new BadRequestException('Cannot close an empty session');
+    }
+
+    // 2. Generar resumen vía RAG Service (Pinky)
+    const summaryText = await this.ragService.summarize(
+      messages.map((m) => ({ role: m.role, content: m.content })),
+    );
+
+    // 3. Persistir resumen en MongoDB
+    await this.chatSummariesService.create(tenantId, session.primaryDoctorUserId, {
+      patientId: session.patientId!,
+      clinicalHistoryId: session.clinicalHistoryId!,
+      summaryText,
+      label: `Chat del ${new Date().toLocaleDateString()}`,
+    });
+
+    // 4. Ingestar en Cerebro (Pinky) para reindexación
+    if (session.patientId) {
+      await this.ragService.ingest({
+        tenantId,
+        patientId: session.patientId,
+        clinicalHistoryId: session.clinicalHistoryId,
+        content: summaryText,
+        scope: RagScope.CLINICAL_HISTORY,
+        metadata: { sessionId: session._id.toString(), type: 'CHAT_SUMMARY' },
+      });
+    }
+
+    // 5. Auditoría
+    await this.auditService.log({
+      tenantId,
+      action: 'CHAT_SESSION_CLOSE',
+      patientId: session.patientId,
+      clinicalHistoryId: session.clinicalHistoryId,
+      userId: session.primaryDoctorUserId,
+      metadata: { sessionId: session._id.toString() },
+    });
+
+    return { summary: summaryText };
   }
 
   private toAnonymousSessionView(

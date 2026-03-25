@@ -6,12 +6,14 @@ import {
   ClinicalDocument,
   ClinicalDocumentSchema,
 } from './schemas/clinical-document.schema';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: ClinicalDocument.name, schema: ClinicalDocumentSchema },
     ]),
+    StorageModule,
   ],
   controllers: [DocumentsController],
   providers: [DocumentsService],

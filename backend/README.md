@@ -50,11 +50,13 @@ $ npm run start:prod
 # unit tests
 $ npm run test
 
+# specific module tests (new)
+$ npx vitest run src/modules/storage/storage.service.spec.ts
+$ npx vitest run src/modules/chat-summaries/chat-summaries.service.spec.ts
+$ npx vitest run src/modules/chat/chat.service.spec.ts
+
 # e2e tests
 $ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
 
 ## Deployment

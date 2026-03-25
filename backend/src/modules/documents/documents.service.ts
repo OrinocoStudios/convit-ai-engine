@@ -6,18 +6,21 @@ import {
   ClinicalDocumentDocument,
 } from './schemas/clinical-document.schema';
 import { CreateClinicalDocumentDto } from './dto/create-clinical-document.dto';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class DocumentsService {
   constructor(
     @InjectModel(ClinicalDocument.name)
     private readonly documentModel: Model<ClinicalDocumentDocument>,
+    private readonly storageService: StorageService,
   ) {}
 
   async create(
     tenantId: string,
     uploadedBy: string,
     dto: CreateClinicalDocumentDto,
+    file?: { buffer: Buffer; originalname: string; mimetype: string },
   ) {
     if (dto.kind === 'patient' && !dto.patientId?.trim()) {
       throw new BadRequestException('patientId is required when kind is patient');
@@ -27,14 +30,29 @@ export class DocumentsService {
         'patientId must not be set when kind is global_library',
       );
     }
+
+    let storageKey = dto.storageKey;
+    let mimeType = dto.mimeType;
+    let filename = dto.filename;
+
+    if (file) {
+      storageKey = await this.storageService.saveFile(tenantId, file);
+      mimeType = file.mimetype;
+      filename = file.originalname;
+    }
+
+    if (!storageKey) {
+      throw new BadRequestException('storageKey or file is required');
+    }
+
     return this.documentModel.create({
       tenantId,
       kind: dto.kind,
       patientId: dto.kind === 'patient' ? dto.patientId : undefined,
       uploadedBy,
-      filename: dto.filename,
-      storageKey: dto.storageKey,
-      mimeType: dto.mimeType,
+      filename,
+      storageKey,
+      mimeType,
     });
   }
 

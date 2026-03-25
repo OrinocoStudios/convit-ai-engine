@@ -10,6 +10,8 @@ import { RagModule } from './modules/rag/rag.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { ClinicalHistoriesModule } from './modules/clinical-histories/clinical-histories.module';
+import { StorageModule } from './modules/storage/storage.module';
+import { ChatSummariesModule } from './modules/chat-summaries/chat-summaries.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { ClinicalHistoriesModule } from './modules/clinical-histories/clinical-h
     ChatModule,
     AuditModule,
     ClinicalHistoriesModule,
+    StorageModule,
+    ChatSummariesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

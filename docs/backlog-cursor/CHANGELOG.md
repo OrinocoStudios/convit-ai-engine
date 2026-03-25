@@ -11,7 +11,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/) sol
 - **Buscador de Pacientes**: Nuevo endpoint `GET /patients/search?identity=...` para localización rápida.
 - **Auditoría Automática (BK-11)**: Integración de `AuditService` en flujos de `Patients`, `History` y `Chat`. Acción trazable automáticamente.
 - **Endpoint de Auditoría**: Añadido `GET /audit` para visualización de logs por tenant.
-- **Flujo de Chat Automatizado**: ... (ya estaba)
+- **Almacenamiento de Archivos (BK-4)**: Implementación de almacenamiento local con aislamiento por `tenantId` para documentos clínicos.
+- **Persistencia de Resúmenes (BK-6)**: Nuevo módulo `ChatSummaries` para guardar los "Chat N" asociados a historias clínicas.
+- **Cierre de Sesión y Reindexación (BK-10)**: Orquestación del fin de chat con generación automática de resumen e ingesta en el Cerebro (Pinky).
 - **Flujo de Chat Automatizado**: Los mensajes del usuario ahora disparan automáticamente una consulta al Cerebro y guardan la respuesta de la IA con sus fuentes.
 - **Persistencia de Fuentes**: Actualización del esquema `ChatMessage` para guardar metadatos de citación.
 

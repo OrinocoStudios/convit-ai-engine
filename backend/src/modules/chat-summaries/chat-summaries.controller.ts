@@ -6,24 +6,19 @@ import {
   Headers,
   Post,
   Query,
-  UploadedFile,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { DocumentsService } from './documents.service';
-import { CreateClinicalDocumentDto } from './dto/create-clinical-document.dto';
+import { ChatSummariesService } from './chat-summaries.service';
+import { CreateChatSummaryDto } from './dto/create-chat-summary.dto';
 
-@Controller('documents')
-export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+@Controller('chat-summaries')
+export class ChatSummariesController {
+  constructor(private readonly chatSummariesService: ChatSummariesService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
   create(
     @Headers('x-tenant-id') tenantId: string | undefined,
     @Headers('x-doctor-user-id') doctorUserId: string | undefined,
-    @Body() dto: CreateClinicalDocumentDto,
-    @UploadedFile() file?: any,
+    @Body() dto: CreateChatSummaryDto,
   ) {
     if (!tenantId?.trim()) {
       throw new BadRequestException('Missing header x-tenant-id');
@@ -31,23 +26,30 @@ export class DocumentsController {
     if (!doctorUserId?.trim()) {
       throw new BadRequestException('Missing header x-doctor-user-id');
     }
-    return this.documentsService.create(
+    return this.chatSummariesService.create(
       tenantId.trim(),
       doctorUserId.trim(),
       dto,
-      file,
     );
   }
 
   @Get()
   list(
     @Headers('x-tenant-id') tenantId: string | undefined,
-    @Query('kind') kind?: string,
+    @Query('clinicalHistoryId') clinicalHistoryId?: string,
     @Query('patientId') patientId?: string,
   ) {
     if (!tenantId?.trim()) {
       throw new BadRequestException('Missing header x-tenant-id');
     }
-    return this.documentsService.list(tenantId.trim(), { kind, patientId });
+    
+    if (clinicalHistoryId) {
+      return this.chatSummariesService.findByHistory(tenantId.trim(), clinicalHistoryId);
+    }
+    if (patientId) {
+      return this.chatSummariesService.findByPatient(tenantId.trim(), patientId);
+    }
+
+    throw new BadRequestException('Either clinicalHistoryId or patientId must be provided');
   }
 }

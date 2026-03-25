@@ -82,4 +82,15 @@ export class ChatController {
       dto,
     );
   }
+
+  @Post('sessions/:anonymousPublicId/close')
+  closeSession(
+    @Headers('x-tenant-id') tenantId: string | undefined,
+    @Param('anonymousPublicId') anonymousPublicId: string,
+  ) {
+    if (!tenantId?.trim()) {
+      throw new BadRequestException('Missing header x-tenant-id');
+    }
+    return this.chatService.closeSession(tenantId.trim(), anonymousPublicId);
+  }
 }
