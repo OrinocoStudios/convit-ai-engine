@@ -1,0 +1,18 @@
+---
+description: Mantener docs/backlog-cursor/CHANGELOG.md al día cuando cambie el backlog
+alwaysApply: true
+---
+
+# Backlog Cursor — mantener CHANGELOG
+
+Cuando edites [docs/backlog-cursor/BACKLOG.md](docs/backlog-cursor/BACKLOG.md):
+
+1. **Actualiza en el mismo cambio** [docs/backlog-cursor/CHANGELOG.md](docs/backlog-cursor/CHANGELOG.md).
+2. Añade entradas bajo `## [Unreleased]` usando las secciones `Added`, `Changed`, `Removed` (estilo [Keep a Changelog](https://keepachangelog.com/)).
+3. Registra al menos:
+   - nuevos o eliminados ítems con ID (p. ej. BK-*, CL-*, CR-*, INF-*);
+   - cambios de estado relevantes (Pendiente → Hecho, cancelaciones, replanificación de MVP);
+   - nuevas épicas o secciones.
+4. Al **cerrar un hito** de documentación del backlog, mueve el contenido acumulado de `[Unreleased]` a una nueva versión con fecha (`## [x.y.z] - YYYY-MM-DD`) y deja `[Unreleased]` vacío salvo una línea en blanco o nota mínima.
+
+No completes un PR o entrega que solo modifique el BACKLOG sin tocar el CHANGELOG.

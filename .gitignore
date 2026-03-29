@@ -14,10 +14,8 @@ dist/
 .idea/
 .vscode/
 *.swp
-# Docs
+# Docs (borradores locales opcionales; la guía versionada está en docs/getting-started.md)
 docs/project-onboarding.md
-docs/code-explanation.md
-docs/how-to-run.md
 docs/logica-historia-clinica.md
 docs/logica-de-chat.md
 docs/logica-de-auditoria.md

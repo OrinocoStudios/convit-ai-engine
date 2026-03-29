@@ -22,3 +22,14 @@
 - `patientId` validado en cada request que no sea solo biblioteca global
 - `clinicalHistoryId` validado contra el paciente y el tenant
 - Auditoría de lecturas y consultas con metadatos de ámbito
+
+## Estado MVP (backend actual)
+
+- **Identidad**: gran parte del API confía en cabeceras `x-tenant-id` y `x-doctor-user-id`. Cualquier cliente en la misma red podría falsificarlas hasta que exista **JWT/OIDC o API keys** por tenant (ver backlog `BK-12`).
+- **CORS**: sin `CORS_ORIGINS`, la API permite cualquier origen (adecuado solo en dev o red cerrada). En hospital, definir `CORS_ORIGINS` con el origen del frontend.
+- **`POST /rag/query`**: proxy al Brain sin las mismas cabeceras que el resto del API; tratarlo como **endpoint interno** (solo red privada, mTLS o deshabilitar en producción si no es necesario).
+
+## Referencias
+
+- Contratos HTTP: [05-api-contracts.md](./05-api-contracts.md)
+- Runbooks: [runbooks/](./runbooks/)

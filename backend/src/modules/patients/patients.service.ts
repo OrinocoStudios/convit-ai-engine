@@ -60,7 +60,10 @@ export class PatientsService {
     if (!isValidObjectId(id)) {
       throw new NotFoundException('Patient not found');
     }
-    const doc = await this.patientModel.findOne({ _id: id, tenantId }).lean().exec();
+    const doc = await this.patientModel
+      .findOne({ _id: id, tenantId })
+      .lean()
+      .exec();
     if (!doc) {
       throw new NotFoundException('Patient not found');
     }

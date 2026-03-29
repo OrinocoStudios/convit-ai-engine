@@ -1,7 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ChatSummary, ChatSummaryDocument } from './schemas/chat-summary.schema';
+import {
+  ChatSummary,
+  ChatSummaryDocument,
+} from './schemas/chat-summary.schema';
 import { CreateChatSummaryDto } from './dto/create-chat-summary.dto';
 import { AuditService } from '../audit/audit.service';
 
@@ -13,7 +16,11 @@ export class ChatSummariesService {
     private readonly auditService: AuditService,
   ) {}
 
-  async create(tenantId: string, doctorUserId: string, dto: CreateChatSummaryDto) {
+  async create(
+    tenantId: string,
+    doctorUserId: string,
+    dto: CreateChatSummaryDto,
+  ) {
     const summary = await this.summaryModel.create({
       tenantId,
       ...dto,
@@ -25,7 +32,7 @@ export class ChatSummariesService {
       userId: doctorUserId,
       patientId: dto.patientId,
       clinicalHistoryId: dto.clinicalHistoryId,
-      metadata: { summaryId: (summary as any)._id, label: dto.label },
+      metadata: { summaryId: summary._id.toString(), label: dto.label },
     });
 
     return summary;

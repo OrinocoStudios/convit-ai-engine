@@ -1,4 +1,10 @@
-import { IsArray, IsNotEmpty, IsOptional, IsString, ArrayUnique } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ArrayUnique,
+} from 'class-validator';
 
 export class CreateChatSessionDto {
   @IsString()

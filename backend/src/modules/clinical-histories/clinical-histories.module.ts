@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ClinicalHistory, ClinicalHistorySchema } from './schemas/clinical-history.schema';
+import {
+  ClinicalHistory,
+  ClinicalHistorySchema,
+} from './schemas/clinical-history.schema';
 import { ClinicalHistoriesService } from './clinical-histories.service';
 import { ClinicalHistoriesController } from './clinical-histories.controller';
 import { AuditModule } from '../audit/audit.module';

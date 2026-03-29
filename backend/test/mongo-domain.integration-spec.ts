@@ -54,7 +54,7 @@ describe('Mongo domain (integration)', () => {
     const p = await request(app.getHttpServer())
       .post('/patients')
       .set('x-tenant-id', 't1')
-      .send({ name: 'Paciente Uno' })
+      .send({ name: 'Paciente Uno', dni: '12345678A' })
       .expect(201);
 
     expect(p.body.name).toBe('Paciente Uno');
@@ -83,6 +83,7 @@ describe('Mongo domain (integration)', () => {
         kind: 'patient',
         patientId,
         filename: 'informe.pdf',
+        storageKey: 's3://bucket/informe.pdf',
       })
       .expect(201);
 

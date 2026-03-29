@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
 import {
   createMongoMemoryServer,
   stopMongoMemoryServer,
@@ -18,6 +17,7 @@ import { ChatModule } from '../src/modules/chat/chat.module';
 import { AuditModule } from '../src/modules/audit/audit.module';
 import { AppController } from '../src/app.controller';
 import { AppService } from '../src/app.service';
+import { HealthModule } from '../src/health/health.module';
 
 describe('App (integration)', () => {
   let app: INestApplication;
@@ -45,6 +45,7 @@ describe('App (integration)', () => {
         RagModule,
         ChatModule,
         AuditModule,
+        HealthModule,
       ],
       controllers: [AppController],
       providers: [AppService],
@@ -67,5 +68,20 @@ describe('App (integration)', () => {
     const response = await request(app.getHttpServer()).get('/');
     expect(response.status).toBe(200);
     expect(response.text).toBe('Hello World!');
+  });
+
+  it('GET /health should return ok', async () => {
+    const response = await request(app.getHttpServer()).get('/health');
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ status: 'ok' });
+  });
+
+  it('GET /health/ready should return ready when Mongo is connected', async () => {
+    const response = await request(app.getHttpServer()).get('/health/ready');
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      status: 'ready',
+      mongo: 'connected',
+    });
   });
 });

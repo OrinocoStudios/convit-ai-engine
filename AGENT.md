@@ -61,7 +61,7 @@ El backend **no** debe inventar fusión de contexto sin trazabilidad: cada bloqu
 
 ## Modelo de datos clave
 Ver `docs/04-data-model.md`. Resumen (MongoDB en este backend):
-- **Patient**: `tenantId`, `name`
+- **Patient**: `tenantId`, `name`, `dni?`, `ssn?` (al menos uno obligatorio al crear; ver servicio); `_id` como `patientId` en APIs; ADR [docs/adr/0001-patient-identifier-dni-ssn.md](docs/adr/0001-patient-identifier-dni-ssn.md)
 - **ClinicalDocument**: `tenantId`, `kind` (`global_library` | `patient`), `patientId` si `kind === patient`, `uploadedBy`, `filename`, …
 - **ChatSession** / **ChatMessage**: sesión anónima pública + vínculo a médicos; ver módulo `chat`
 - **AuditLog**: `tenantId`, `action`, `patientId?`, `clinicalHistoryId?`, `userId?`, `metadata?`
@@ -124,17 +124,24 @@ Los resúmenes “Chat N” pueden añadirse al payload de fuentes en el **backe
 - Toda acción sobre datos de paciente u historia se registra en audit log
 
 ## Documentación
-Los documentos de diseño están en `/docs`:
-- `backlog-cursor/` → Backlog técnico accionable ([BACKLOG.md](docs/backlog-cursor/BACKLOG.md), [README.md](docs/backlog-cursor/README.md)); el [CHANGELOG.md](docs/backlog-cursor/CHANGELOG.md) de esa carpeta debe actualizarse siempre que cambie el backlog (regla Cursor: `.cursor/rules/maintain-backlog-changelog.mdc`)
+Índice y fuentes de verdad: [docs/README.md](docs/README.md).
+
+Documentos de diseño numerados en `/docs`:
+- **`docs/backlog-cursor/`** → **Backlog técnico accionable** ([BACKLOG.md](docs/backlog-cursor/BACKLOG.md)). Cualquier cambio sustantivo en [BACKLOG.md](docs/backlog-cursor/BACKLOG.md) debe ir acompañado de entrada en [CHANGELOG.md](docs/backlog-cursor/CHANGELOG.md) (regla `.cursor/rules/maintain-backlog-changelog.mdc`).
+- **`docs/backlog/`** → Archivos por sprint (`sprint-*.md`) y [CHANGELOG.md](docs/backlog/CHANGELOG.md) histórico por sprint; mantener coherencia con el código al cerrar tareas de sprint.
 - `00-overview.md` → Visión general y principios
 - `01-architecture.md` → Arquitectura y componentes
 - `02-e2e-flows.md` → Flujos end-to-end
 - `03-rag-integration.md` → Integración con Brain Service y ámbitos RAG
 - `04-data-model.md` → Modelo de datos
 - `05-api-contracts.md` → Contratos de API
-- `06-backlog.md` → Plan de sprints
+- `06-backlog.md` → Obsoleto como lista única; enlaza a `backlog-cursor/`
 - `07-security.md` → Seguridad y aislamiento
-- `08-deployment.md` → Deployment con Docker
+- `08-deployment.md` → Despliegue
+- `getting-started.md` → Arranque local y tests
+- `adr/` → Decisiones de arquitectura
+- `technical-changelog.md` → Registro técnico
+- `observability-roadmap.md` / `runbooks/` → Operación
 
 ## Skills
 Los skills accionables para tareas específicas están en `/.skills/`:
@@ -155,8 +162,6 @@ Los skills accionables para tareas específicas están en `/.skills/`:
 7. SIEMPRE actualiza `docs/backlog/CHANGELOG.md` al completar una tarea, agregar funcionalidad, corregir un bug, o hacer un cambio arquitectónico
 
 ## Backlog y CHANGELOG (OBLIGATORIO)
-- El backlog técnico está en `docs/backlog/` — consulta el README para entender la estructura
-- **`docs/backlog/CHANGELOG.md` DEBE mantenerse actualizado en todo momento**
-- Cada cambio relevante debe tener una entrada en el CHANGELOG con: fecha, descripción, sprint/tarea, tipo (Added/Changed/Fixed/Removed)
-- Actualiza el estado de las tareas en los archivos de sprint correspondientes cuando completes trabajo
-- Usa los IDs de tarea (S0-01, S1-02, etc.) para referenciar tareas en commits y documentación
+- **Backlog técnico canónico (IDs BK-*, INF-*, etc.)**: [docs/backlog-cursor/BACKLOG.md](docs/backlog-cursor/BACKLOG.md). Al modificarlo, actualizar [docs/backlog-cursor/CHANGELOG.md](docs/backlog-cursor/CHANGELOG.md) en el mismo cambio lógico.
+- **Backlog por sprints** (`docs/backlog/sprint-*.md`): actualiza el estado (DONE/TODO) cuando cierres trabajo y añade una entrada en [docs/backlog/CHANGELOG.md](docs/backlog/CHANGELOG.md) si el cambio es relevante para ese hilo.
+- Usa los IDs de tarea (S1-02, BK-1, INF-4, etc.) en commits y documentación.

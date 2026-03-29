@@ -10,11 +10,16 @@
 ### Tenant / Clínica
 - Identificador de organización para todo el aislamiento multi-hospital.
 
-### Patient
-- id
-- tenantId
-- name
-- (metadatos acordados)
+### Patient (colección `patients`)
+- `_id` — usado como **`patientId`** en APIs y relaciones internas.
+- `tenantId` — clínica (índices y unicidad por tenant).
+- `name`
+- `dni` — documento nacional u homólogo (opcional en esquema; **al menos uno** de `dni` / `ssn` al crear, validado en servicio).
+- `ssn` — número de seguridad social u homólogo (igual que `dni` respecto a obligatoriedad).
+- Índices únicos parciales: `(tenantId, dni)` y `(tenantId, ssn)` cuando el campo está definido.
+- `createdAt`, `updatedAt` — timestamps (`timestamps: true` en Mongoose).
+
+Ver decisión en [adr/0001-patient-identifier-dni-ssn.md](./adr/0001-patient-identifier-dni-ssn.md).
 
 ### GlobalLibraryDocument
 - id

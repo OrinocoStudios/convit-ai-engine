@@ -10,6 +10,7 @@ import {
   getMongoUri,
 } from './helpers/integration-setup';
 import { ChatModule } from '../src/modules/chat/chat.module';
+import { RagService } from '../src/modules/rag/rag.service';
 
 describe('Chat (integration)', () => {
   let app: INestApplication;
@@ -18,17 +19,36 @@ describe('Chat (integration)', () => {
     await createMongoMemoryServer();
     const mongoUri = getMongoUri();
 
+    const ragStub = {
+      query: async () => ({
+        answer: 'Respuesta de prueba',
+        sources: [
+          {
+            scope: 'GLOBAL_LIBRARY',
+            source: 'test',
+            documentId: 'doc1',
+            content: 'ctx',
+          },
+        ],
+      }),
+      summarize: async () => 'Resumen',
+      ingest: async () => undefined,
+    };
+
     const moduleFixture = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
           ignoreEnvFile: true,
-          load: [() => ({ MONGO_URI: mongoUri })],
+          load: [() => ({ MONGO_URI: mongoUri, BRAIN_SERVICE_URL: 'http://localhost:9' })],
         }),
         MongooseModule.forRoot(mongoUri),
         ChatModule,
       ],
-    }).compile();
+    })
+      .overrideProvider(RagService)
+      .useValue(ragStub)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(
@@ -84,8 +104,11 @@ describe('Chat (integration)', () => {
       .set('x-tenant-id', 'tenant_a')
       .expect(200);
 
-    expect(list.body).toHaveLength(1);
+    expect(list.body).toHaveLength(2);
+    expect(list.body[0].role).toBe('user');
     expect(list.body[0].content).toBe('Pregunta de prueba');
     expect(list.body[0].authorDoctorUserId).toBe('doc_garcia');
+    expect(list.body[1].role).toBe('assistant');
+    expect(list.body[1].content).toBe('Respuesta de prueba');
   });
 });

@@ -31,6 +31,10 @@ export class AuditService {
   }
 
   async findAll(tenantId: string) {
-    return this.auditModel.find({ tenantId }).sort({ createdAt: -1 }).lean().exec();
+    return this.auditModel
+      .find({ tenantId })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
   }
 }

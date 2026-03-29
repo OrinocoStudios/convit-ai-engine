@@ -1,7 +1,13 @@
-# Convit AI Engine – Backlog
+# Convit AI Engine – Backlog por sprints
+
+## Fuente de verdad del backlog técnico (IDs)
+
+El inventario accionable con épicas **Infra/QA, Back, Cerebro, Client** y estados **Hecho/Pendiente** está en **[`docs/backlog-cursor/BACKLOG.md`](../backlog-cursor/BACKLOG.md)**. Este directorio `docs/backlog/` complementa con **narrativa por sprint** (`sprint-*.md`).
+
+Al cerrar ítems que tengan ID en `backlog-cursor`, actualiza también ese `BACKLOG.md` y su [CHANGELOG](../backlog-cursor/CHANGELOG.md) según la regla del repo.
 
 ## Descripción
-Este directorio contiene el backlog técnico completo del proyecto Convit AI Engine, organizado por sprints. Cada archivo de sprint detalla las tareas, su estado y criterios de aceptación.
+Este directorio organiza el trabajo por sprints. Cada archivo de sprint detalla tareas, estado y criterios de aceptación.
 
 ## Estructura
 ```
@@ -26,7 +32,7 @@ docs/backlog/
 ## Cómo usar este backlog
 1. Antes de comenzar cualquier sprint, revisa el archivo correspondiente
 2. Actualiza el estado de las tareas conforme avances
-3. **SIEMPRE** actualiza `CHANGELOG.md` cuando completes una tarea o hagas un cambio relevante
+3. **Actualiza** [CHANGELOG.md](./CHANGELOG.md) cuando completes una tarea de sprint o hagas un cambio relevante a estos archivos
 4. Si una tarea se mueve de sprint, márcala como DEFERRED y agrégala en el sprint destino
 
 ## Reglas del agente (OBLIGATORIAS)

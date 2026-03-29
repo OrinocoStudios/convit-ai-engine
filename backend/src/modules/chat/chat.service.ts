@@ -7,8 +7,14 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { randomUUID } from 'crypto';
-import { ChatSession, ChatSessionDocument } from './schemas/chat-session.schema';
-import { ChatMessage, ChatMessageDocument } from './schemas/chat-message.schema';
+import {
+  ChatSession,
+  ChatSessionDocument,
+} from './schemas/chat-session.schema';
+import {
+  ChatMessage,
+  ChatMessageDocument,
+} from './schemas/chat-message.schema';
 import { CreateChatSessionDto } from './dto/create-chat-session.dto';
 import { CreateChatMessageDto } from './dto/create-chat-message.dto';
 import { RagService } from '../rag/rag.service';
@@ -152,15 +158,17 @@ export class ChatService {
             sourceCount: ragResponse.sources?.length ?? 0,
           },
         });
-      } catch (error) {
-        this.logger.error(`Failed to get IA response: ${error.message}`);
-        
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        this.logger.error(`Failed to get IA response: ${errMsg}`);
+
         await this.messageModel.create({
           tenantId,
           sessionId: session._id,
           sessionAnonymousPublicId: session.anonymousPublicId,
           role: 'assistant',
-          content: 'Lo siento, no he podido conectar con mi cerebro en este momento. Por favor, inténtalo de nuevo más tarde.',
+          content:
+            'Lo siento, no he podido conectar con mi cerebro en este momento. Por favor, inténtalo de nuevo más tarde.',
         });
 
         await this.auditService.log({
@@ -168,7 +176,7 @@ export class ChatService {
           action: 'CHAT_ERROR_RAG',
           patientId: session.patientId,
           clinicalHistoryId: session.clinicalHistoryId,
-          metadata: { error: error.message },
+          metadata: { error: errMsg },
         });
       }
     }
@@ -255,12 +263,16 @@ export class ChatService {
     );
 
     // 3. Persistir resumen en MongoDB
-    await this.chatSummariesService.create(tenantId, session.primaryDoctorUserId, {
-      patientId: session.patientId!,
-      clinicalHistoryId: session.clinicalHistoryId!,
-      summaryText,
-      label: `Chat del ${new Date().toLocaleDateString()}`,
-    });
+    await this.chatSummariesService.create(
+      tenantId,
+      session.primaryDoctorUserId,
+      {
+        patientId: session.patientId,
+        clinicalHistoryId: session.clinicalHistoryId!,
+        summaryText,
+        label: `Chat del ${new Date().toLocaleDateString()}`,
+      },
+    );
 
     // 4. Ingestar en Cerebro (Pinky) para reindexación
     if (session.patientId) {

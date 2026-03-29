@@ -9,7 +9,11 @@ describe('ChatSummariesService', () => {
 
   beforeEach(() => {
     summaryModel = {
-      create: vi.fn().mockImplementation((data) => Promise.resolve({ ...data, _id: 'mock_id' })),
+      create: vi
+        .fn()
+        .mockImplementation((data) =>
+          Promise.resolve({ ...data, _id: 'mock_id' }),
+        ),
       find: vi.fn().mockReturnThis(),
       sort: vi.fn().mockReturnThis(),
       lean: vi.fn().mockReturnThis(),
@@ -35,24 +39,34 @@ describe('ChatSummariesService', () => {
     const result = await service.create(tenantId, userId, dto);
 
     expect(result).toBeDefined();
-    expect(summaryModel.create).toHaveBeenCalledWith(expect.objectContaining({
-      tenantId,
-      summaryText: 'Resumen de prueba',
-    }));
-    expect(auditService.log).toHaveBeenCalledWith(expect.objectContaining({
-      action: 'CREATE_CHAT_SUMMARY',
-      tenantId,
-      userId,
-    }));
+    expect(summaryModel.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId,
+        summaryText: 'Resumen de prueba',
+      }),
+    );
+    expect(auditService.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'CREATE_CHAT_SUMMARY',
+        tenantId,
+        userId,
+      }),
+    );
   });
 
   it('debe buscar por historia clínica', async () => {
     await service.findByHistory('t1', 'h1');
-    expect(summaryModel.find).toHaveBeenCalledWith({ tenantId: 't1', clinicalHistoryId: 'h1' });
+    expect(summaryModel.find).toHaveBeenCalledWith({
+      tenantId: 't1',
+      clinicalHistoryId: 'h1',
+    });
   });
 
   it('debe buscar por paciente', async () => {
     await service.findByPatient('t1', 'p1');
-    expect(summaryModel.find).toHaveBeenCalledWith({ tenantId: 't1', patientId: 'p1' });
+    expect(summaryModel.find).toHaveBeenCalledWith({
+      tenantId: 't1',
+      patientId: 'p1',
+    });
   });
 });

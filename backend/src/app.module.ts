@@ -12,6 +12,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { ClinicalHistoriesModule } from './modules/clinical-histories/clinical-histories.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { ChatSummariesModule } from './modules/chat-summaries/chat-summaries.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -21,7 +22,10 @@ import { ChatSummariesModule } from './modules/chat-summaries/chat-summaries.mod
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        uri: config.get<string>('MONGO_URI', 'mongodb://localhost:27017/convit'),
+        uri: config.get<string>(
+          'MONGO_URI',
+          'mongodb://localhost:27017/convit',
+        ),
       }),
     }),
     AuthModule,
@@ -33,6 +37,7 @@ import { ChatSummariesModule } from './modules/chat-summaries/chat-summaries.mod
     ClinicalHistoriesModule,
     StorageModule,
     ChatSummariesModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

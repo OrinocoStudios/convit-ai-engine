@@ -13,7 +13,7 @@ Esta carpeta concentra el **backlog técnico accionable** para agentes y el equi
 
 - **Principios y reglas no negociables**: [AGENT.md](../../AGENT.md) (fuentes obligatorias, `tenantId` / `patientId` / `clinicalHistoryId`, on-premise).
 - **Modelo de datos y contratos API**: [docs/04-data-model.md](../04-data-model.md), [docs/05-api-contracts.md](../05-api-contracts.md).
-- **Plan por sprints (alto nivel)**: [docs/06-backlog.md](../06-backlog.md) — debe seguir alineado con [BACKLOG.md](./BACKLOG.md) cuando se cierren entregas.
+- **Plan por sprints (alto nivel)**: [docs/backlog/sprint-*.md](../backlog/) y resumen obsoleto en [docs/06-backlog.md](../06-backlog.md) — al cerrar entregas, alinear tareas con el estado en [BACKLOG.md](./BACKLOG.md).
 
 ## Arquitectura en tres piezas (producto)
 

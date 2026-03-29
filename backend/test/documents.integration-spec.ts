@@ -26,10 +26,12 @@ describe('Documents (integration)', () => {
         ConfigModule.forRoot({
           isGlobal: true,
           ignoreEnvFile: true,
-          load: [() => ({ 
-            MONGO_URI: mongoUri,
-            STORAGE_BASE_PATH: storagePath
-          })],
+          load: [
+            () => ({
+              MONGO_URI: mongoUri,
+              STORAGE_BASE_PATH: storagePath,
+            }),
+          ],
         }),
         MongooseModule.forRoot(mongoUri),
         DocumentsModule,
@@ -50,9 +52,9 @@ describe('Documents (integration)', () => {
   afterAll(async () => {
     await app?.close();
     await stopMongoMemoryServer();
-    try {
-      await fs.rm(storagePath, { recursive: true, force: true });
-    } catch (e) {}
+    await fs
+      .rm(storagePath, { recursive: true, force: true })
+      .catch(() => undefined);
   });
 
   it('sube un documento global y lo persiste en disco', async () => {

@@ -8,21 +8,21 @@ describe('StorageService', () => {
   let service: StorageService;
   const storagePath = path.join(__dirname, 'test-storage-unit');
 
-  beforeEach(async () => {
+  beforeEach(() => {
     const configService = {
       get: (key: string, defaultValue: string) => {
         if (key === 'STORAGE_BASE_PATH') return storagePath;
         return defaultValue;
       },
     } as unknown as ConfigService;
-    
+
     service = new StorageService(configService);
   });
 
   afterEach(async () => {
-    try {
-      await fs.rm(storagePath, { recursive: true, force: true });
-    } catch (e) {}
+    await fs
+      .rm(storagePath, { recursive: true, force: true })
+      .catch(() => undefined);
   });
 
   it('debe guardar un archivo y devolver el storageKey', async () => {
@@ -40,7 +40,10 @@ describe('StorageService', () => {
     expect(storageKey).toContain('test.pdf');
 
     const filePath = path.join(storagePath, storageKey);
-    const exists = await fs.access(filePath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(filePath)
+      .then(() => true)
+      .catch(() => false);
     expect(exists).toBe(true);
 
     const content = await fs.readFile(filePath, 'utf-8');

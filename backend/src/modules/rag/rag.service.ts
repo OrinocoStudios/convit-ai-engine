@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
-import { QueryRequestDto, RagScope } from './dto/query-request.dto';
+import { QueryRequestDto } from './dto/query-request.dto';
 import { QueryResponseDto } from './dto/query-response.dto';
 import { SummarizeRequestDto } from './dto/summarize-request.dto';
 import { SummarizeResponseDto } from './dto/summarize-response.dto';
@@ -17,30 +17,41 @@ export class RagService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.brainServiceUrl = this.configService.get<string>('BRAIN_SERVICE_URL', 'http://brain-service:8000');
+    this.brainServiceUrl = this.configService.get<string>(
+      'BRAIN_SERVICE_URL',
+      'http://brain-service:8000',
+    );
   }
 
   async query(request: QueryRequestDto): Promise<QueryResponseDto> {
     try {
       const { data } = await firstValueFrom(
-        this.httpService.post<QueryResponseDto>(`${this.brainServiceUrl}/query`, request),
+        this.httpService.post<QueryResponseDto>(
+          `${this.brainServiceUrl}/query`,
+          request,
+        ),
       );
       return data;
-    } catch (error) {
-      this.logger.error(`Error querying Brain Service: ${error.message}`, error.stack);
-      throw error;
+    } catch (err: unknown) {
+      const e = err instanceof Error ? err : new Error(String(err));
+      this.logger.error(`Error querying Brain Service: ${e.message}`, e.stack);
+      throw err;
     }
   }
 
   async summarize(messages: SummarizeRequestDto['messages']): Promise<string> {
     try {
       const { data } = await firstValueFrom(
-        this.httpService.post<SummarizeResponseDto>(`${this.brainServiceUrl}/summarize`, { messages }),
+        this.httpService.post<SummarizeResponseDto>(
+          `${this.brainServiceUrl}/summarize`,
+          { messages },
+        ),
       );
       return data.summary;
-    } catch (error) {
-      this.logger.error(`Error summarizing via Brain Service: ${error.message}`);
-      throw error;
+    } catch (err: unknown) {
+      const e = err instanceof Error ? err : new Error(String(err));
+      this.logger.error(`Error summarizing via Brain Service: ${e.message}`);
+      throw err;
     }
   }
 
@@ -49,9 +60,10 @@ export class RagService {
       await firstValueFrom(
         this.httpService.post(`${this.brainServiceUrl}/ingest`, request),
       );
-    } catch (error) {
-      this.logger.error(`Error ingesting to Brain Service: ${error.message}`);
-      throw error;
+    } catch (err: unknown) {
+      const e = err instanceof Error ? err : new Error(String(err));
+      this.logger.error(`Error ingesting to Brain Service: ${e.message}`);
+      throw err;
     }
   }
 }

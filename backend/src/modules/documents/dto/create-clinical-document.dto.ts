@@ -11,7 +11,7 @@ export class CreateClinicalDocumentDto {
   @IsEnum(['global_library', 'patient'])
   kind: ClinicalDocumentKind;
 
-  @ValidateIf((o) => o.kind === 'patient')
+  @ValidateIf((o: CreateClinicalDocumentDto) => o.kind === 'patient')
   @IsString()
   @IsNotEmpty()
   patientId?: string;

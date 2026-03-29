@@ -42,14 +42,22 @@ export class ChatSummariesController {
     if (!tenantId?.trim()) {
       throw new BadRequestException('Missing header x-tenant-id');
     }
-    
+
     if (clinicalHistoryId) {
-      return this.chatSummariesService.findByHistory(tenantId.trim(), clinicalHistoryId);
+      return this.chatSummariesService.findByHistory(
+        tenantId.trim(),
+        clinicalHistoryId,
+      );
     }
     if (patientId) {
-      return this.chatSummariesService.findByPatient(tenantId.trim(), patientId);
+      return this.chatSummariesService.findByPatient(
+        tenantId.trim(),
+        patientId,
+      );
     }
 
-    throw new BadRequestException('Either clinicalHistoryId or patientId must be provided');
+    throw new BadRequestException(
+      'Either clinicalHistoryId or patientId must be provided',
+    );
   }
 }

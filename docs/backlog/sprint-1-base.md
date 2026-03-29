@@ -17,14 +17,11 @@ Implementar la capa de datos operacionales completa: autenticación básica, ges
 - DTO `CreatePatientDto` con validación
 - **Archivos:** `modules/patients/`
 
-### S1-02: Agregar identificador clínico al paciente (DNI/SSN) — TODO
-- Agregar campo `identifier` (DNI o Número de Seguridad Social) al schema `Patient`
-- Agregar campo `identifierType` (`dni` | `ssn` | `other`)
-- Índice único compuesto `(tenantId, identifierType, identifier)`
-- Actualizar `CreatePatientDto` con validación de identifier
-- Endpoint `GET /patients/by-identifier?type=dni&value=12345678` para búsqueda por DNI/SSN
-- **Prioridad:** Alta — es el flujo de inicio de chat (médico introduce DNI)
-- **Criterio de aceptación:** Puedo buscar un paciente por DNI y obtenerlo o saber que no existe
+### S1-02: Identificador clínico al paciente (DNI/SSN) — DONE
+- Schema `Patient`: campos `dni` y `ssn` con índices únicos parciales por `tenantId`
+- `CreatePatientDto`: al menos uno de `dni` / `ssn` (validación en servicio)
+- Búsqueda: `GET /patients/search?identity=<valor>` (coincide con DNI o SSN en el tenant)
+- Referencia: [docs/adr/0001-patient-identifier-dni-ssn.md](../adr/0001-patient-identifier-dni-ssn.md)
 
 ### S1-03: Documents metadata CRUD — DONE
 - Schema `ClinicalDocument` con `tenantId`, `kind` (global_library | patient), `patientId`, `uploadedBy`, `filename`, `storageKey`, `mimeType`
@@ -45,20 +42,13 @@ Implementar la capa de datos operacionales completa: autenticación básica, ges
 - Método `log()` para escritura
 - **Archivos:** `modules/audit/`
 
-### S1-06: Modelo ClinicalHistory — TODO
-- Crear schema `ClinicalHistory` con: `tenantId`, `patientId`, `openedBy` (userId del doctor), `title`, timestamps
-- CRUD: `POST /patients/:patientId/clinical-histories`, `GET /patients/:patientId/clinical-histories`, `GET /clinical-histories/:id`
-- Índice `(tenantId, patientId)`
-- Validar que el paciente exista antes de crear historia
-- **Puede ser módulo nuevo** `modules/clinical-histories/` o sub-recurso de patients
-- **Criterio de aceptación:** Puedo crear y listar historias clínicas de un paciente
+### S1-06: Modelo ClinicalHistory — DONE
+- Módulo `modules/clinical-histories/` con rutas bajo `/clinical-histories` (no como sub-recurso de `/patients/:id/...` en la implementación actual)
+- `POST /clinical-histories`, `GET /clinical-histories?patientId=`, `GET /clinical-histories/:id`
 
-### S1-07: Modelo ChatSummary — TODO
-- Crear schema `ChatSummary` con: `tenantId`, `patientId`, `clinicalHistoryId`, `label` (ej. "Chat 1"), `summaryText`, `sessionId` (referencia a ChatSession)
-- CRUD: `GET /clinical-histories/:id/chat-summaries`, `POST /clinical-histories/:id/chat-summaries`
-- Este modelo vive en MongoDB (no en el corpus RAG)
-- **Depende de:** S1-06 (ClinicalHistory)
-- **Criterio de aceptación:** Puedo crear y listar resúmenes asociados a una historia clínica
+### S1-07: Modelo ChatSummary — DONE
+- Módulo `chat-summaries`: `POST /chat-summaries`, `GET /chat-summaries?clinicalHistoryId=` o `?patientId=`
+- Persistencia en MongoDB (no corpus RAG)
 
 ### S1-08: Auth básica (JWT o similar) — TODO
 - Implementar autenticación básica en `modules/auth/`
@@ -68,14 +58,9 @@ Implementar la capa de datos operacionales completa: autenticación básica, ges
 - **Decisión pendiente:** ¿JWT con registro de usuarios o simple API key por tenant?
 - **Criterio de aceptación:** Los endpoints protegidos rechazan requests sin credenciales válidas
 
-### S1-09: RAG Service — conexión base con Brain Service — TODO
-- Implementar `RagService` (actualmente vacío) con HttpModule de NestJS
-- Método `query(tenantId, patientId, clinicalHistoryId, query, scopes)` → llama a `POST /query` del Brain Service
-- Método `healthCheck()` → verificar conexión con Brain Service
-- Configurar `BRAIN_SERVICE_URL` desde ConfigService
-- Manejar errores de conexión y timeouts
-- **Archivo:** `modules/rag/rag.service.ts`
-- **Criterio de aceptación:** Puedo hacer una query al Brain Service y recibir respuesta con fuentes
+### S1-09: RAG Service — conexión base con Brain Service — DONE
+- `RagService` + `POST /rag/query` (proxy); configuración `BRAIN_SERVICE_URL`
+- **Pendiente mejora:** `healthCheck()` dedicado y restringir `/rag/query` en producción (ver [docs/07-security.md](../07-security.md))
 
 ### S1-10: Tests de integración para módulos nuevos — TODO
 - Tests de integración para ClinicalHistory CRUD

@@ -23,7 +23,9 @@ export class DocumentsService {
     file?: { buffer: Buffer; originalname: string; mimetype: string },
   ) {
     if (dto.kind === 'patient' && !dto.patientId?.trim()) {
-      throw new BadRequestException('patientId is required when kind is patient');
+      throw new BadRequestException(
+        'patientId is required when kind is patient',
+      );
     }
     if (dto.kind === 'global_library' && dto.patientId) {
       throw new BadRequestException(
@@ -56,10 +58,7 @@ export class DocumentsService {
     });
   }
 
-  async list(
-    tenantId: string,
-    filters: { kind?: string; patientId?: string },
-  ) {
+  async list(tenantId: string, filters: { kind?: string; patientId?: string }) {
     const q: Record<string, unknown> = { tenantId };
     if (filters.kind) {
       q.kind = filters.kind;

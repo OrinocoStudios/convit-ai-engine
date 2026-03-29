@@ -20,6 +20,7 @@ export class ClinicalHistory {
 }
 
 export type ClinicalHistoryDocument = HydratedDocument<ClinicalHistory>;
-export const ClinicalHistorySchema = SchemaFactory.createForClass(ClinicalHistory);
+export const ClinicalHistorySchema =
+  SchemaFactory.createForClass(ClinicalHistory);
 
 ClinicalHistorySchema.index({ tenantId: 1, patientId: 1 });

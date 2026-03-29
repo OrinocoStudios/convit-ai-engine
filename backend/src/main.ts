@@ -14,11 +14,24 @@ async function bootstrap() {
     }),
   );
 
-  app.enableCors();
-
   const configService = app.get(ConfigService);
+  const corsOrigins = configService.get<string>('CORS_ORIGINS', '');
+  const trimmed = corsOrigins?.trim() ?? '';
+  if (trimmed && trimmed !== '*') {
+    app.enableCors({
+      origin: trimmed
+        .split(',')
+        .map((o) => o.trim())
+        .filter(Boolean),
+    });
+  } else {
+    // Sin CORS_ORIGINS: todos los orígenes (solo desarrollo / redes cerradas).
+    app.enableCors();
+  }
+
   const port = configService.get<number>('PORT', 3000);
 
   await app.listen(port);
 }
-bootstrap();
+
+void bootstrap();

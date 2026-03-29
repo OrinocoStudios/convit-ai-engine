@@ -1,5 +1,15 @@
 # convit-ai-engine
 
+Backend (**NestJS** + MongoDB) del motor Convit AI. El frontend (Next.js) es un componente aparte del sistema; este repo concentra la API y la persistencia operativa.
+
+## Desarrollo rápido
+
+- **Contexto y reglas para agentes**: [AGENT.md](./AGENT.md)
+- **Índice de documentación**: [docs/README.md](./docs/README.md)
+- **Arranque local, tests, Docker**: [docs/getting-started.md](./docs/getting-started.md)
+- **Backlog técnico**: [docs/backlog-cursor/BACKLOG.md](./docs/backlog-cursor/BACKLOG.md)
+- **Variables de entorno**: [backend/.env.example](./backend/.env.example)
+
 ⸻
 
 🏥 Convit AI – MVP Definition

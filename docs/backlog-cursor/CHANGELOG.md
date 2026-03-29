@@ -7,6 +7,18 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/) sol
 
 ## [Unreleased]
 
+### Changed
+
+- **INF-4** cerrado: endpoints `GET /health` y `GET /health/ready` en el backend; documentados en `docs/05-api-contracts.md` y `docs/08-deployment.md`.
+- **INF-3** cerrado: `docs/08-deployment.md` y README describen compose mínimo y enlace a Pinky/Ollama vía `BRAIN_SERVICE_URL`.
+- **ID-1**: referencias actualizadas a ADR `docs/adr/0001-patient-identifier-dni-ssn.md` (sustituye doc ignorado `code-explanation.md`).
+- Fuente de verdad del backlog aclarada en `docs/README.md`, `docs/backlog/README.md` y `AGENT.md`.
+
+### Added
+
+- CI GitHub Actions (lint CI, tests, build) en `.github/workflows/ci.yml`.
+- Documentación: `docs/getting-started.md`, `docs/technical-changelog.md`, `docs/observability-roadmap.md`, `docs/runbooks/`, `docs/adr/`.
+
 - **Identidad del Paciente (BK-2)**: Implementación de DNI y SSN como identificadores obligatorios y únicos por clínica.
 - **Buscador de Pacientes**: Nuevo endpoint `GET /patients/search?identity=...` para localización rápida.
 - **Auditoría Automática (BK-11)**: Integración de `AuditService` en flujos de `Patients`, `History` y `Chat`. Acción trazable automáticamente.

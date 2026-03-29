@@ -8,6 +8,15 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Alineación de `docs/backlog/README.md` con `docs/backlog-cursor/` como backlog canónico con IDs.
+- Actualizado `sprint-1-base.md` (S1-02, S1-06, S1-07, S1-09) al estado real del código.
+
+### Added
+
+- Entradas cruzadas a `docs/getting-started.md`, runbooks y ADR desde el índice `docs/README.md`.
+
 ---
 
 ## [0.0.1] – 2025-03-21

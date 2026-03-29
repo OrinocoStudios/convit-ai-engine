@@ -11,7 +11,12 @@ export class ChatMessage {
   @Prop({ required: true, index: true })
   tenantId: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'ChatSession', required: true, index: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'ChatSession',
+    required: true,
+    index: true,
+  })
   sessionId: Types.ObjectId;
 
   /** Denormalizado para consultas por id público sin join. */

@@ -37,7 +37,10 @@ export class PatientsController {
     if (!identity?.trim()) {
       throw new BadRequestException('Missing query parameter identity');
     }
-    return this.patientsService.searchByIdentity(tenantId.trim(), identity.trim());
+    return this.patientsService.searchByIdentity(
+      tenantId.trim(),
+      identity.trim(),
+    );
   }
 
   @Get()

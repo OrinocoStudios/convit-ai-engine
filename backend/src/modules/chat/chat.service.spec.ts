@@ -76,19 +76,25 @@ describe('ChatService', () => {
         summaryText: 'Resumen de la IA',
       }),
     );
-    expect(ragService.ingest).toHaveBeenCalledWith(expect.objectContaining({
-      scope: RagScope.CLINICAL_HISTORY,
-      content: 'Resumen de la IA',
-    }));
-    expect(auditService.log).toHaveBeenCalledWith(expect.objectContaining({
-      action: 'CHAT_SESSION_CLOSE',
-    }));
+    expect(ragService.ingest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: RagScope.CLINICAL_HISTORY,
+        content: 'Resumen de la IA',
+      }),
+    );
+    expect(auditService.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'CHAT_SESSION_CLOSE',
+      }),
+    );
   });
 
   it('closeSession debe fallar si no hay mensajes', async () => {
     sessionModel.findOne.mockResolvedValue({ _id: 'id' });
     messageModel.exec.mockResolvedValue([]);
 
-    await expect(service.closeSession('t1', 'aid')).rejects.toThrow('Cannot close an empty session');
+    await expect(service.closeSession('t1', 'aid')).rejects.toThrow(
+      'Cannot close an empty session',
+    );
   });
 });
