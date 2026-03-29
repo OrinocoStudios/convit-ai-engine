@@ -12,10 +12,15 @@
 
 - Alineación de `docs/backlog/README.md` con `docs/backlog-cursor/` como backlog canónico con IDs.
 - Actualizado `sprint-1-base.md` (S1-02, S1-06, S1-07, S1-09) al estado real del código.
+- El flujo documental y de chat ahora usa categorías clínicas explícitas (`medical_history`, `medical_consultation`) y fuentes trazables provenientes de Pinky.
+- El contrato API del engine incorpora detalle/descarga documental, `sources[]` en mensajes de chat y configuración para despliegue conjunto con Pinky protegido por API key.
+- El despliegue raíz del MVP ahora apunta por defecto a un gateway remoto OpenAI-compatible para modelos (`OPENAI_BASE_URL`) en lugar de requerir Ollama local.
 
 ### Added
 
 - Entradas cruzadas a `docs/getting-started.md`, runbooks y ADR desde el índice `docs/README.md`.
+- Stack raíz reproducible con `docker-compose.yml`, `.env.example`, cliente containerizado y storage persistente para originales clínicos.
+- Variables `BRAIN_SERVICE_API_KEY` y `STORAGE_BASE_PATH` documentadas en `backend/.env.example`.
 
 ---
 

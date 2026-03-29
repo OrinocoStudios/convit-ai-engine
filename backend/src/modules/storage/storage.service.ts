@@ -30,7 +30,7 @@ export class StorageService {
 
     const timestamp = Date.now();
     const safeFilename = file.originalname
-      .replace(/[^a-z0-0.]/gi, '_')
+      .replace(/[^a-z0-9.]/gi, '_')
       .toLowerCase();
     const storageKey = `${timestamp}-${safeFilename}`;
     const filePath = path.join(tenantDir, storageKey);
@@ -41,6 +41,17 @@ export class StorageService {
     } catch {
       throw new InternalServerErrorException(
         `Could not save file ${file.originalname}`,
+      );
+    }
+  }
+
+  async deleteFile(storageKey: string): Promise<void> {
+    const filePath = path.join(this.baseDir, storageKey);
+    try {
+      await fs.rm(filePath, { force: true });
+    } catch {
+      throw new InternalServerErrorException(
+        `Could not delete file ${storageKey}`,
       );
     }
   }

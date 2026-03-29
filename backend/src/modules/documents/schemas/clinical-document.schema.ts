@@ -1,5 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import {
+  CLINICAL_DOCUMENT_CATEGORIES,
+  type ClinicalDocumentCategory,
+} from '../clinical-document.constants';
 
 export type ClinicalDocumentKind = 'global_library' | 'patient';
 
@@ -18,6 +22,13 @@ export class ClinicalDocument {
 
   @Prop({ index: true })
   patientId?: string;
+  @Prop({
+    type: String,
+    enum: CLINICAL_DOCUMENT_CATEGORIES,
+    required: true,
+    index: true,
+  })
+  category: ClinicalDocumentCategory;
 
   @Prop({ required: true })
   uploadedBy: string;
@@ -30,6 +41,14 @@ export class ClinicalDocument {
 
   @Prop()
   mimeType?: string;
+  @Prop({ index: true })
+  ragDocumentId?: string;
+
+  @Prop({ index: true })
+  ragLibraryId?: string;
+
+  @Prop()
+  extractedText?: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -41,3 +60,5 @@ export const ClinicalDocumentSchema =
 
 ClinicalDocumentSchema.index({ tenantId: 1, kind: 1 });
 ClinicalDocumentSchema.index({ tenantId: 1, patientId: 1 });
+ClinicalDocumentSchema.index({ tenantId: 1, patientId: 1, category: 1 });
+ClinicalDocumentSchema.index({ tenantId: 1, ragDocumentId: 1 });

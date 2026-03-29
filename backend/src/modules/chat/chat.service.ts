@@ -203,8 +203,10 @@ export class ChatService {
     anonymousPublicId: string,
   ): Promise<
     {
+      id: string;
       role: ChatMessage['role'];
       content: string;
+      sources?: ChatMessage['sources'];
       authorDoctorUserId?: string;
       createdAt: Date;
       updatedAt: Date;
@@ -221,13 +223,15 @@ export class ChatService {
     const rows = await this.messageModel
       .find({ tenantId, sessionId: session._id })
       .sort({ createdAt: 1 })
-      .select('role content authorDoctorUserId createdAt updatedAt')
+      .select('_id role content sources authorDoctorUserId createdAt updatedAt')
       .lean()
       .exec();
 
     return rows.map((r) => ({
+      id: r._id.toString(),
       role: r.role,
       content: r.content,
+      sources: r.sources,
       authorDoctorUserId: r.authorDoctorUserId,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
@@ -261,21 +265,18 @@ export class ChatService {
     const summaryText = await this.ragService.summarize(
       messages.map((m) => ({ role: m.role, content: m.content })),
     );
-
-    // 3. Persistir resumen en MongoDB
-    await this.chatSummariesService.create(
-      tenantId,
-      session.primaryDoctorUserId,
-      {
-        patientId: session.patientId,
-        clinicalHistoryId: session.clinicalHistoryId!,
-        summaryText,
-        label: `Chat del ${new Date().toLocaleDateString()}`,
-      },
-    );
-
-    // 4. Ingestar en Cerebro (Pinky) para reindexación
-    if (session.patientId) {
+    // 3. Persistir e indexar resumen solo cuando el chat está ligado a una historia clínica
+    if (session.patientId && session.clinicalHistoryId) {
+      await this.chatSummariesService.create(
+        tenantId,
+        session.primaryDoctorUserId,
+        {
+          patientId: session.patientId,
+          clinicalHistoryId: session.clinicalHistoryId,
+          summaryText,
+          label: `Chat del ${new Date().toLocaleDateString()}`,
+        },
+      );
       await this.ragService.ingest({
         tenantId,
         patientId: session.patientId,
@@ -285,8 +286,7 @@ export class ChatService {
         metadata: { sessionId: session._id.toString(), type: 'CHAT_SUMMARY' },
       });
     }
-
-    // 5. Auditoría
+    // 4. Auditoría
     await this.auditService.log({
       tenantId,
       action: 'CHAT_SESSION_CLOSE',

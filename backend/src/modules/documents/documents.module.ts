@@ -7,6 +7,8 @@ import {
   ClinicalDocumentSchema,
 } from './schemas/clinical-document.schema';
 import { StorageModule } from '../storage/storage.module';
+import { RagModule } from '../rag/rag.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { StorageModule } from '../storage/storage.module';
       { name: ClinicalDocument.name, schema: ClinicalDocumentSchema },
     ]),
     StorageModule,
+    RagModule,
+    AuditModule,
   ],
   controllers: [DocumentsController],
   providers: [DocumentsService],
