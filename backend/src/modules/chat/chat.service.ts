@@ -137,6 +137,7 @@ export class ChatService {
           patientId: session.patientId,
           clinicalHistoryId: session.clinicalHistoryId,
           scopes,
+          sessionId: session.anonymousPublicId,
         });
 
         const assistantMsg = await this.messageModel.create({
@@ -258,12 +259,17 @@ export class ChatService {
       .exec();
 
     if (messages.length === 0) {
-      throw new BadRequestException('Cannot close an empty session');
+      return { summary: '' };
     }
 
     // 2. Generar resumen vía RAG Service (Pinky)
     const summaryText = await this.ragService.summarize(
       messages.map((m) => ({ role: m.role, content: m.content })),
+      session.anonymousPublicId,
+      tenantId,
+      session.patientId
+        ? `patient:${session.patientId}:medical_history`
+        : undefined,
     );
     // 3. Persistir e indexar resumen solo cuando el chat está ligado a una historia clínica
     if (session.patientId && session.clinicalHistoryId) {

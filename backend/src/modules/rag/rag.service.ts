@@ -88,6 +88,7 @@ export class RagService {
         {
           query: request.query,
           libraryIds,
+          sessionId: request.sessionId,
         },
         {
           headers: this.buildBrainHeaders(request.tenantId),
@@ -113,13 +114,18 @@ export class RagService {
     }
   }
 
-  async summarize(messages: SummarizeRequestDto['messages']): Promise<string> {
+  async summarize(
+    messages: SummarizeRequestDto['messages'],
+    sessionId?: string,
+    tenantId?: string,
+    libraryId?: string,
+  ): Promise<string> {
     try {
       const { data } = await this.httpService.axiosRef.post<SummarizeResponseDto>(
         `${this.brainServiceUrl}/summarize`,
-        { messages },
+        { messages, sessionId, tenantId, libraryId },
         {
-          headers: this.buildBrainHeaders(),
+          headers: this.buildBrainHeaders(tenantId, libraryId),
         },
       );
       return data.summary;

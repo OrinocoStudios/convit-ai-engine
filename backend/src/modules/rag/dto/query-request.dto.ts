@@ -33,4 +33,8 @@ export class QueryRequestDto {
   @IsEnum(RagScope, { each: true })
   @IsOptional()
   scopes?: RagScope[];
+
+  @IsString()
+  @IsOptional()
+  sessionId?: string;
 }
