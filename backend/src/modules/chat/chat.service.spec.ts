@@ -20,7 +20,12 @@ describe('ChatService', () => {
       sort: vi.fn().mockReturnThis(),
       lean: vi.fn().mockReturnThis(),
       exec: vi.fn(),
-      create: vi.fn(),
+      create: vi.fn().mockImplementation((input: { role: string }) => {
+        if (input.role === 'assistant') {
+          return Promise.resolve({ _id: 'asst_1' });
+        }
+        return Promise.resolve({ _id: 'user_1' });
+      }),
     };
     ragService = {
       summarize: vi.fn().mockResolvedValue('Resumen de la IA'),
@@ -89,12 +94,61 @@ describe('ChatService', () => {
     );
   });
 
-  it('closeSession debe fallar si no hay mensajes', async () => {
+  it('closeSession con lista vacía devuelve summary vacío sin llamar summarize', async () => {
     sessionModel.findOne.mockResolvedValue({ _id: 'id' });
     messageModel.exec.mockResolvedValue([]);
 
-    await expect(service.closeSession('t1', 'aid')).rejects.toThrow(
-      'Cannot close an empty session',
+    const out = await service.closeSession('t1', 'aid');
+    expect(out).toEqual({ summary: '' });
+    expect(ragService.summarize).not.toHaveBeenCalled();
+  });
+
+  it('appendMessage usuario dispara RAG y persiste assistant con sources', async () => {
+    const mockSession = {
+      _id: 'mongo-s1',
+      tenantId: 't1',
+      anonymousPublicId: 'aid-1',
+      doctorUserIds: ['d1'],
+      primaryDoctorUserId: 'd1',
+      patientId: 'p1',
+      clinicalHistoryId: 'h1',
+    };
+    sessionModel.findOne.mockResolvedValue(mockSession);
+    ragService.query.mockResolvedValue({
+      answer: 'Respuesta con fuente',
+      sources: [
+        {
+          content: 'cita',
+          source: 'doc.pdf',
+          scope: 'GLOBAL_LIBRARY',
+        },
+      ],
+    });
+
+    const out = await service.appendMessage('t1', 'aid-1', {
+      role: 'user',
+      content: 'Hola',
+      authorDoctorUserId: 'd1',
+    });
+
+    expect(out.id).toBe('user_1');
+    expect(ragService.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: 'Hola',
+        tenantId: 't1',
+        patientId: 'p1',
+        clinicalHistoryId: 'h1',
+        sessionId: 'aid-1',
+        scopes: expect.arrayContaining([RagScope.GLOBAL_LIBRARY]),
+      }),
     );
+    expect(messageModel.create).toHaveBeenCalled();
+    const assistantCall = (messageModel.create as ReturnType<typeof vi.fn>).mock
+      .calls[1];
+    expect(assistantCall[0].role).toBe('assistant');
+    expect(assistantCall[0].content).toBe('Respuesta con fuente');
+    expect(assistantCall[0].sources).toEqual([
+      expect.objectContaining({ source: 'doc.pdf' }),
+    ]);
   });
 });

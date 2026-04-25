@@ -94,7 +94,10 @@ export class RagService {
           headers: this.buildBrainHeaders(request.tenantId),
         },
       );
-      const sources = await this.mapBrainSources(request.tenantId, data.fastContext);
+      const sources = await this.buildSourcesFromBrainResponse(
+        request.tenantId,
+        data,
+      );
       if (sources.length === 0) {
         return {
           answer:
@@ -228,6 +231,39 @@ export class RagService {
     ];
 
     return [...new Set(libraryIds)];
+  }
+
+  /**
+   * Construye fuentes para el cliente: primero chunks (`fastContext`), si no hay trazas
+   * verificables usa hechos del grafo (`truthFacts`) como respaldo MVP.
+   */
+  private async buildSourcesFromBrainResponse(
+    tenantId: string,
+    data: BrainQueryResponse,
+  ): Promise<QueryResponseDto['sources']> {
+    const chunkSources = await this.mapBrainSources(
+      tenantId,
+      Array.isArray(data.fastContext) ? data.fastContext : [],
+    );
+    if (chunkSources.length > 0) {
+      return chunkSources;
+    }
+    return this.mapTruthFactsToSources(data.truthFacts ?? []);
+  }
+
+  /** Fuentes sintéticas cuando Pinky devuelve grafo pero no chunks recuperables. */
+  private mapTruthFactsToSources(
+    facts: BrainQueryResponse['truthFacts'],
+  ): QueryResponseDto['sources'] {
+    if (!facts?.length) {
+      return [];
+    }
+    return facts.map((fact) => ({
+      content: `${fact.from} — ${fact.relation} — ${fact.to}`,
+      source: 'Grafo (truthFacts)',
+      scope: 'GRAPH_FACT',
+      metadata: { factId: fact.id },
+    }));
   }
 
   private async mapBrainSources(
