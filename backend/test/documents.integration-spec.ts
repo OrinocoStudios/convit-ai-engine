@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { Test } from '@nestjs/testing';
@@ -18,6 +18,18 @@ describe('Documents (integration)', () => {
   const storagePath = path.join(__dirname, 'test-storage');
 
   beforeAll(async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        documentId: 'rag-doc-1',
+        libraryId: 'global:medical_history',
+        title: 'test.txt',
+        rawText: 'Contenido de prueba',
+      }),
+      text: async () => '',
+    }));
+
     await createMongoMemoryServer();
     const mongoUri = getMongoUri();
 
@@ -50,6 +62,7 @@ describe('Documents (integration)', () => {
   });
 
   afterAll(async () => {
+    vi.unstubAllGlobals();
     await app?.close();
     await stopMongoMemoryServer();
     await fs
@@ -68,6 +81,7 @@ describe('Documents (integration)', () => {
       .set('x-tenant-id', tenantId)
       .set('x-doctor-user-id', doctorId)
       .field('kind', 'global_library')
+      .field('category', 'medical_history')
       .field('filename', 'test.txt')
       .attach('file', buffer, 'test.txt')
       .expect(201);
@@ -95,6 +109,7 @@ describe('Documents (integration)', () => {
       .set('x-doctor-user-id', doctorId)
       .field('kind', 'patient')
       .field('patientId', patientId)
+      .field('category', 'medical_consultation')
       .field('filename', 'p.pdf')
       .attach('file', buffer, 'p.pdf')
       .expect(201);

@@ -67,6 +67,7 @@ describe('Mongo domain (integration)', () => {
       .set('x-doctor-user-id', 'doc_1')
       .send({
         kind: 'global_library',
+        category: 'medical_history',
         filename: 'guia.pdf',
         storageKey: 's3://bucket/guia.pdf',
       })
@@ -82,6 +83,7 @@ describe('Mongo domain (integration)', () => {
       .send({
         kind: 'patient',
         patientId,
+        category: 'medical_consultation',
         filename: 'informe.pdf',
         storageKey: 's3://bucket/informe.pdf',
       })

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import {
@@ -23,6 +23,12 @@ describe('App (integration)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: 'ok' }),
+    }));
+
     await createMongoMemoryServer();
     const mongoUri = getMongoUri();
 
@@ -56,6 +62,7 @@ describe('App (integration)', () => {
   });
 
   afterAll(async () => {
+    vi.unstubAllGlobals();
     await app?.close();
     await stopMongoMemoryServer();
   });
